@@ -1,0 +1,37 @@
+<resources>
+    <string name="app_name">SmartHome</string>
+    <string name="chon_ngay">Chọn ngày</string>
+    <string name="errorProcess">Có lỗi xảy ra trong quá trình xử lý. Vui lòng kiểm tra lại.</string>
+    <string name="ok">Đồng ý</string>
+    <string name="errorNetwork">Bạn vui lòng kiểm tra lại kết nối mạng</string>
+    <string name="exception">Đã có lỗi không xác định xảy ra, vui lòng liên hệ với quản trị để được trợ giúp!</string>
+    <string name="require_2g">Mạng của bạn hiện tại là 2G. Giao dịch có thể chậm</string>
+    <string name="require_3g">Mạng của bạn hiện tại là 3G.</string>
+    <string name="require_4g">Mạng của bạn hiện tại là 4G.</string>
+    <string name="require_wifi">Mạng của bạn hiện tại là WIFI.</string>
+    <string name="require_netwotk_unknown">Mạng của bạn không xác định.</string>
+    <string name="checkgps">Không lấy được tọa độ ! Bạn vui lòng ra khỏi khu vực có mái che để lấy được tọa độ.</string>
+    <string name="cannot_get_location">Không lấy được tọa độ, bạn vui lòng kiểm tra lại GPS .</string>
+    <string name="confirmspport">Bạn có muốn gọi đến số %s để được hỗ trợ sử dụng phần mềm ?</string>
+    <string name="cancel">Hủy</string>
+    <string name="lowMemory">Bộ nhớ RAM còn lại %1$s MB, điều này có thể gây ra 1 số lỗi trong quá trình sử dụng. Ứng dụng chỉ hoạt động ổn định với thiết bị có bộ nhớ RAM lớn hơn %2$s MB</string>
+    <string name="okMemory">Bộ nhớ RAM còn lại %1$s MB</string>
+    <string name="unknown_host_exception">Xin lỗi, không kết nối được đến máy chủ, vui lòng đảm bảo đã tắt wifi, sim được khai kết nối đầy đủ và đã cài đặt s-intranet!</string>
+    <string name="connect_timeout_exception">Xin lỗi, bạn chưa có kết nối đến hệ thống, vui lòng đảm bảo đã tắt wifi, sim được khai kết nối đầy đủ và đã cài đặt s-intranet!</string>
+    <string name="socket_timeout_exception">Quá trình phản hồi từ máy chủ quá lâu! Vui lòng kiểm tra kết nối và đường truyền mạng!</string>
+    <string name="http_host_connect_exception">Quá trình phản hồi từ máy chủ bị gián đoạn! Vui lòng kiểm tra kết nối và đường truyền mạng!</string>
+    <string name="socket_close_exception">Quá trình phản hồi từ máy chủ quá lâu! Vui lòng kiểm tra kết nối và đường truyền mạng và thực hiện lại!</string>
+    <string name="illegal_state_exception">Quá trình phản hồi từ máy chủ quá lâu! Vui lòng kiểm tra kết nối và đường truyền mạng và thực hiện lại!</string>
+    <string name="socket_io_exception">Quá trình phản hồi từ máy chủ quá lâu! Vui lòng kiểm tra kết nối và đường truyền mạng và thực hiện lại!</string>
+    <string name="txt_transaction_timeout">Giao dịch đang được xử lý. Vui lòng kiểm tra lại kết quả sau 5 phút!</string>
+    <string name="txt_todate_after_currentdate">Đến ngày không được lớn hơn ngày hiện tại!</string>
+    <string name="checktimeupdatejob">Từ ngày phải nhỏ hơn hoặc bằng đến ngày</string>
+    <string name="duration_over_load">Bạn chỉ được tìm kiếm trong khoảng thời gian %s ngày.</string>
+    <string name="default_notification_channel_id">113</string>
+    <string name="title_shop">Shop</string>
+    <string name="title_gifts">Gifts</string>
+    <string name="title_cart">Cart</string>
+    <string name="title_profile">Profile</string>
+    <string name="channel_name">Channel Name</string>
+    <string name="channel_description">Channel Description</string>
+</resources>

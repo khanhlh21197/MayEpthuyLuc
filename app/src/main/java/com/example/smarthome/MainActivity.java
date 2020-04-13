@@ -1,0 +1,57 @@
+package com.example.smarthome;
+
+import android.os.Build;
+import android.os.Bundle;
+import android.view.MenuItem;
+import android.widget.ImageView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+
+import com.example.smarthome.ui.login.LoginFragment;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+public class MainActivity extends AppCompatActivity {
+    private ActionBar toolBar;
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        getSupportFragmentManager().beginTransaction().add(R.id.frame_container, LoginFragment.newInstance()).commit();
+//        BottomNavigationView bottom = findViewById(R.id.navigation);
+//        toolBar = getSupportActionBar();
+//        bottom.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+//        ImageView btnBack = findViewById(R.id.btnBack);
+//        btnBack.setOnClickListener(v -> {
+//            onBackPressed();
+//        });
+    }
+
+    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
+            = new BottomNavigationView.OnNavigationItemSelectedListener() {
+        @Override
+        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+            Fragment fragment;
+            switch (item.getItemId()) {
+                case R.id.navigation_shop:
+                    toolBar.setTitle("Shop");
+                    return true;
+                case R.id.navigation_gifts:
+                    toolBar.setTitle("My Gifts");
+                    return true;
+                case R.id.navigation_cart:
+                    toolBar.setTitle("Cart");
+                    return true;
+                case R.id.navigation_profile:
+                    toolBar.setTitle("Profile");
+                    return true;
+            }
+            return false;
+        }
+    };
+}
