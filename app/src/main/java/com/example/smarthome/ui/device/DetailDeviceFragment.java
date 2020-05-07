@@ -243,7 +243,7 @@ public class DetailDeviceFragment extends Fragment {
         }
     }
 
-    private Animation createFlashingAnimation() {
+    public static Animation createFlashingAnimation() {
         final Animation flashingAnimation = new AlphaAnimation(1, 0); // Change alpha from fully visible to invisible
         flashingAnimation.setDuration(500); // duration - half a second
         flashingAnimation.setInterpolator(new LinearInterpolator()); // do not alter animation rate

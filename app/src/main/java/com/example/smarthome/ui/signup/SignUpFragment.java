@@ -1,5 +1,6 @@
 package com.example.smarthome.ui.signup;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -49,7 +50,9 @@ public class SignUpFragment extends Fragment implements Result<User> {
     }
 
     private void goToLogIn() {
-        ReplaceFragment.replaceFragment(getActivity(), LoginFragment.newInstance(), true);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            ReplaceFragment.replaceFragment(getActivity(), LoginFragment.newInstance(), true);
+        }
     }
 
     @Override

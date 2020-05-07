@@ -2,6 +2,7 @@ package com.example.smarthome;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
 
@@ -9,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 
 import com.example.smarthome.ui.login.LoginFragment;
@@ -22,6 +24,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        // Find the toolbar view inside the activity layout
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        // Sets the Toolbar to act as the ActionBar for this Activity window.
+        // Make sure the toolbar exists in the activity and is not null
+        setSupportActionBar(toolbar);
+        findViewById(R.id.btnBack).setOnClickListener(v -> onBackPressed());
         getSupportFragmentManager().beginTransaction().add(R.id.frame_container, LoginFragment.newInstance()).commit();
 //        BottomNavigationView bottom = findViewById(R.id.navigation);
 //        toolBar = getSupportActionBar();
@@ -30,6 +38,12 @@ public class MainActivity extends AppCompatActivity {
 //        btnBack.setOnClickListener(v -> {
 //            onBackPressed();
 //        });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_toolbar, menu);
+        return true;
     }
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener

@@ -1,17 +1,22 @@
 package com.example.smarthome.common;
 
 import android.content.Context;
+import android.os.Build;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
-import androidx.lifecycle.MutableLiveData;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smarthome.BR;
+import com.example.smarthome.R;
+import com.example.smarthome.ui.device.DetailDeviceFragment;
+import com.example.smarthome.ui.device.model.Device;
 
 import java.util.List;
 
@@ -46,6 +51,7 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
         return new ViewHolder(DataBindingUtil.inflate(inflater, resId, parent, false));
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onBindViewHolder(@NonNull BaseBindingAdapter.ViewHolder holder, int position) {
         T item = data.get(position);
@@ -54,6 +60,20 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
         holder.itemView.setOnClickListener(v -> {
             onItemClickListener.onItemClick(item);
         });
+
+        if (item instanceof Device){
+            Device device = (Device) item;
+            try{
+                if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())){
+                    holder.itemView.findViewById(R.id.imgWarning).setVisibility(View.VISIBLE);
+                    holder.itemView.findViewById(R.id.imgWarning).setAnimation(DetailDeviceFragment.createFlashingAnimation());
+                }else{
+                    holder.itemView.findViewById(R.id.imgWarning).setVisibility(View.GONE);
+                }
+            }catch (NumberFormatException e){
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -70,7 +90,7 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
         }
     }
 
-    public interface OnItemClickListener<T>{
+    public interface OnItemClickListener<T> {
         void onItemClick(T item);
     }
 }
