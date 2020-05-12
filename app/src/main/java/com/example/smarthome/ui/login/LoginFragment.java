@@ -1,10 +1,12 @@
 package com.example.smarthome.ui.login;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.KeyguardManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
@@ -61,6 +63,8 @@ public class LoginFragment extends Fragment implements Result {
     private KeyStore keyStore;
     public static final String KEY_NAME = "SmartHome";
     private Cipher cipher;
+    private SharedPreferences sharedPreferences;
+    public static final String MyPREFERENCES = "MyPrefs";
 
     public static LoginFragment newInstance() {
 
@@ -93,21 +97,21 @@ public class LoginFragment extends Fragment implements Result {
             FingerprintManager fingerprintManager
                     = (FingerprintManager) getActivity().getSystemService(Context.FINGERPRINT_SERVICE);
             if (fingerprintManager != null) {
-                if (fingerprintManager.isHardwareDetected()){
+                if (fingerprintManager.isHardwareDetected()) {
                     Toast.makeText(mActivity, "Thiết bị không sử dụng vân tay!", Toast.LENGTH_SHORT).show();
-                }else{
+                } else {
                     if (ActivityCompat.checkSelfPermission(getActivity(),
-                            Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED){
+                            Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
                         Toast.makeText(mActivity, "Vui lòng cấp quyền sử dụng vân tay cho ứng dụng !", Toast.LENGTH_SHORT).show();
-                    }else{
-                        if (!fingerprintManager.hasEnrolledFingerprints()){
+                    } else {
+                        if (!fingerprintManager.hasEnrolledFingerprints()) {
                             Toast.makeText(mActivity, "Vui lòng đăng ký vân tay!", Toast.LENGTH_SHORT).show();
-                        }else{
-                            if (!manager.isKeyguardSecure()){
+                        } else {
+                            if (!manager.isKeyguardSecure()) {
                                 Toast.makeText(mActivity, "Chưa bật khóa màn hình!", Toast.LENGTH_SHORT).show();
-                            }else{
+                            } else {
                                 generateKey();
-                                if (cipherInit()){
+                                if (cipherInit()) {
                                     FingerprintManager.CryptoObject cryptoObject
                                             = new FingerprintManager.CryptoObject(cipher);
                                     FingerprintHandler helper = new FingerprintHandler(getActivity());
@@ -177,6 +181,13 @@ public class LoginFragment extends Fragment implements Result {
     }
 
     private void unit() {
+        sharedPreferences = Objects.requireNonNull(getActivity()).getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+        String email = sharedPreferences.getString("email", "");
+        String password = sharedPreferences.getString("password", "");
+        if (!CommonActivity.isNullOrEmpty(email) && !CommonActivity.isNullOrEmpty(password)){
+            binding.btnLogin.performClick();
+        }
+
         loginViewModel = ViewModelProviders.of((FragmentActivity) mActivity).get(LoginViewModel.class);
         binding.setLifecycleOwner(this);
         binding.setLoginViewModel(loginViewModel);
@@ -196,6 +207,17 @@ public class LoginFragment extends Fragment implements Result {
 
     @Override
     public void onSuccess(Object o, String message) {
+        if (binding.saveUser.isChecked()){
+            User user = (User) o;
+            String email = user.getEmail();
+            String password = user.getPassword();
+
+            @SuppressLint("CommitPrefEdits") SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString("email", email);
+            editor.putString("password", password);
+            editor.apply();
+        }
+
         Toast.makeText(mActivity, message, Toast.LENGTH_SHORT).show();
         displayAlertDialog();
     }

@@ -27,7 +27,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@{detail_device.toString()}"
-                android:textSize="22sp"
+                android:textSize="@dimen/_18ssp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -37,7 +37,7 @@
                 android:id="@+id/lnTime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/_8sdp"
                 android:orientation="horizontal"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
@@ -50,7 +50,7 @@
                     android:layout_weight="1"
                     android:gravity="center_vertical"
                     android:text="@{detail_device.time}"
-                    android:textSize="32sp"
+                    android:textSize="@dimen/_24ssp"
                     tools:text="@tools:sample/date/ddmmyy" />
 
                 <TextClock
@@ -59,7 +59,7 @@
                     android:layout_weight="1"
                     android:format24Hour="HH:mm:ss"
                     android:gravity="center_vertical"
-                    android:textSize="32sp"
+                    android:textSize="@dimen/_24ssp"
                     tools:targetApi="jelly_bean_mr1" />
 
             </LinearLayout>
@@ -68,7 +68,7 @@
                 android:id="@+id/lnEnvironmentTemperature"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/_16sdp"
                 android:background="@drawable/bg_textview"
                 android:baselineAligned="false"
                 android:orientation="horizontal"
@@ -90,7 +90,7 @@
                         android:gravity="center"
                         android:text="Nhiệt độ môi trường"
                         android:textAllCaps="true"
-                        android:textSize="18sp"
+                        android:textSize="@dimen/_14ssp"
                         tools:ignore="NestedWeights" />
 
                     <TextView
@@ -101,7 +101,7 @@
                         android:gravity="center"
                         android:text="@{detail_device.averageND}"
                         android:textColor="@color/red"
-                        android:textSize="18sp" />
+                        android:textSize="@dimen/_14ssp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -117,7 +117,7 @@
                         android:gravity="center"
                         android:text="Nhiệt độ trung bình"
                         android:textAllCaps="true"
-                        android:textSize="18sp" />
+                        android:textSize="@dimen/_14ssp" />
 
                     <TextView
                         android:id="@+id/txtAverageTemp"
@@ -127,7 +127,7 @@
                         android:gravity="center"
                         android:text="26.0"
                         android:textColor="@color/red"
-                        android:textSize="18sp" />
+                        android:textSize="@dimen/_14ssp" />
                 </LinearLayout>
 
             </LinearLayout>
@@ -136,7 +136,7 @@
                 android:id="@+id/lnHumanTemp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="@dimen/_16sdp"
                 android:background="@drawable/bg_textview"
                 android:orientation="vertical"
                 app:layout_constraintLeft_toLeftOf="parent"
@@ -149,7 +149,7 @@
                     android:gravity="center"
                     android:text="Nhiệt độ người"
                     android:textAllCaps="true"
-                    android:textSize="22sp" />
+                    android:textSize="@dimen/_18ssp" />
 
                 <TextView
                     android:id="@+id/txtHumanTemp"
@@ -157,7 +157,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:textColor="@color/red"
-                    android:textSize="36dp"
+                    android:textSize="@dimen/_24ssp"
                     tools:text="@{detail_device.nO}" />
 
             </LinearLayout>
@@ -177,7 +177,7 @@
                     android:layout_height="wrap_content"
                     android:text="Cài ngưỡng cảnh báo"
                     android:textAllCaps="true"
-                    android:textSize="22sp" />
+                    android:textSize="@dimen/_18ssp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -192,7 +192,7 @@
                         android:background="@null"
                         android:hint="Nhập giá trị ngưỡng"
                         android:inputType="numberDecimal"
-                        android:paddingLeft="8dp" />
+                        android:paddingLeft="@dimen/_8sdp" />
 
                     <Button
                         android:id="@+id/btnThreshold"

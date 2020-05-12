@@ -17,23 +17,23 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingLeft="24dp"
-            android:paddingTop="56dp"
-            android:paddingRight="24dp">
+            android:paddingLeft="@dimen/_24sdp"
+            android:paddingTop="@dimen/_56sdp"
+            android:paddingRight="@dimen/_24sdp">
 
             <ImageView
                 android:layout_width="wrap_content"
-                android:layout_height="72dp"
+                android:layout_height="@dimen/_72sdp"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="@dimen/_24sdp"
                 android:src="@drawable/ic_smart_home" />
 
             <!-- Name Label -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp">
+                android:layout_marginTop="@dimen/_8sdp"
+                android:layout_marginBottom="@dimen/_8sdp">
 
                 <EditText
                     android:id="@+id/input_name"
@@ -48,8 +48,8 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp">
+                android:layout_marginTop="@dimen/_8sdp"
+                android:layout_marginBottom="@dimen/_8sdp">
 
                 <EditText
                     android:id="@+id/input_address"
@@ -65,8 +65,8 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp">
+                android:layout_marginTop="@dimen/_8sdp"
+                android:layout_marginBottom="@dimen/_8sdp">
 
                 <EditText
                     android:id="@+id/input_email"
@@ -82,8 +82,8 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp">
+                android:layout_marginTop="@dimen/_8sdp"
+                android:layout_marginBottom="@dimen/_8sdp">
 
                 <EditText
                     android:id="@+id/input_mobile"
@@ -98,8 +98,8 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp">
+                android:layout_marginTop="@dimen/_8sdp"
+                android:layout_marginBottom="@dimen/_8sdp">
 
                 <EditText
                     android:id="@+id/input_password"
@@ -114,8 +114,8 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp">
+                android:layout_marginTop="@dimen/_8sdp"
+                android:layout_marginBottom="@dimen/_8sdp">
 
                 <EditText
                     android:id="@+id/input_reEnterPassword"
@@ -131,14 +131,14 @@
                 android:id="@+id/btn_signup"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="24dp"
-                android:layout_marginBottom="24dp"
+                android:layout_marginTop="@dimen/_24sdp"
+                android:layout_marginBottom="@dimen/_24sdp"
                 android:background="@drawable/border_button_create_account"
                 android:clickable="true"
                 android:focusable="true"
                 android:gravity="center"
                 android:onClick="@{(v) -> SignUpViewModel.onClick(v)}"
-                android:padding="12dp"
+                android:padding="@dimen/_12sdp"
                 android:text="Tạo tài khoản"
                 android:textAllCaps="true"
                 android:textStyle="bold" />
@@ -147,10 +147,10 @@
                 android:id="@+id/link_login"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="@dimen/_24sdp"
                 android:gravity="center"
                 android:text="Bạn đã có tài khoản? Đăng nhập"
-                android:textSize="16dip" />
+                android:textSize="@dimen/_16ssp" />
 
         </LinearLayout>
     </ScrollView>

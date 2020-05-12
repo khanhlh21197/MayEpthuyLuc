@@ -13,7 +13,7 @@
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:padding="8dp"
+        android:padding="@dimen/_8sdp"
         tools:targetApi="lollipop">
 
         <androidx.cardview.widget.CardView
@@ -22,8 +22,8 @@
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:background="@drawable/bg_textview"
-                android:elevation="24dp"
-                android:padding="2dp"
+                android:elevation="@dimen/_24sdp"
+                android:padding="@dimen/_2sdp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
 
@@ -31,7 +31,7 @@
                     android:id="@+id/txtDeviceName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textSize="18sp"
+                    android:textSize="@dimen/_14ssp"
                     android:text="@{item_device.id}"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
@@ -40,9 +40,9 @@
 
                 <androidx.appcompat.widget.AppCompatImageView
                     android:id="@+id/imgDevice"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_marginTop="8dp"
+                    android:layout_width="@dimen/_64sdp"
+                    android:layout_height="@dimen/_64sdp"
+                    android:layout_marginTop="@dimen/_8sdp"
                     android:src="@drawable/ic_temp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintLeft_toLeftOf="parent"
@@ -52,9 +52,9 @@
                 <androidx.appcompat.widget.AppCompatImageView
                     android:visibility="gone"
                     android:id="@+id/imgWarning"
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    android:layout_marginTop="8dp"
+                    android:layout_width="@dimen/_64sdp"
+                    android:layout_height="@dimen/_64sdp"
+                    android:layout_marginTop="@dimen/_8sdp"
                     android:src="@drawable/ic_warning_red"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintLeft_toLeftOf="parent"
@@ -66,9 +66,9 @@
                     android:id="@+id/txtActive"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="@dimen/_8sdp"
                     android:textColor="@color/colorPrimary"
-                    android:textSize="18sp"
+                    android:textSize="@dimen/_12ssp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toLeftOf="@id/txtBattery"
@@ -79,8 +79,8 @@
                     android:id="@+id/txtBattery"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:textSize="18sp"
+                    android:layout_marginStart="@dimen/_8sdp"
+                    android:textSize="@dimen/_12ssp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toRightOf="@id/txtActive"
                     app:layout_constraintRight_toRightOf="parent"

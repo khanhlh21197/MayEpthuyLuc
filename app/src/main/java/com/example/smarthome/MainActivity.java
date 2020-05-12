@@ -12,8 +12,14 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
+import com.example.smarthome.common.CommonActivity;
+import com.example.smarthome.common.ReplaceFragment;
+import com.example.smarthome.ui.device.DetailDeviceFragment;
 import com.example.smarthome.ui.login.LoginFragment;
+import com.example.smarthome.ui.main.MainFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
@@ -30,7 +36,16 @@ public class MainActivity extends AppCompatActivity {
         // Make sure the toolbar exists in the activity and is not null
         setSupportActionBar(toolbar);
         findViewById(R.id.btnBack).setOnClickListener(v -> onBackPressed());
-        getSupportFragmentManager().beginTransaction().add(R.id.frame_container, LoginFragment.newInstance()).commit();
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.add(R.id.frame_container, LoginFragment.newInstance()).commit();
+        String menuFragment = getIntent().getStringExtra("menuFragment");
+        String idDevice = getIntent().getStringExtra("idDevice");
+        if (!CommonActivity.isNullOrEmpty(menuFragment)){
+            if (menuFragment.equals("DetailDeviceFragment")){
+                ReplaceFragment.replaceFragment(this, MainFragment.newInstance(idDevice), false);
+            }
+        }
 //        BottomNavigationView bottom = findViewById(R.id.navigation);
 //        toolBar = getSupportActionBar();
 //        bottom.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);

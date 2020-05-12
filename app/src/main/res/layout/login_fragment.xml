@@ -35,8 +35,8 @@
                 android:id="@+id/emailAddress"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:layout_marginBottom="@dimen/_8sdp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/lblTitle">
@@ -45,9 +45,9 @@
                     android:id="@+id/txtEmailAddress"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="32dp"
-                    android:layout_marginTop="32dp"
-                    android:layout_marginEnd="32dp"
+                    android:layout_marginStart="@dimen/_32sdp"
+                    android:layout_marginTop="@dimen/_32sdp"
+                    android:layout_marginEnd="@dimen/_32sdp"
                     android:ems="10"
                     android:hint="Email hoặc tên tài khoản"
                     android:inputType="textEmailAddress"
@@ -58,8 +58,8 @@
                 android:id="@+id/password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:layout_marginBottom="8dp"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:layout_marginBottom="@dimen/_8sdp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/emailAddress">
@@ -68,29 +68,37 @@
                     android:id="@+id/txtPassword"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="32dp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginEnd="32dp"
+                    android:layout_marginStart="@dimen/_32sdp"
+                    android:layout_marginTop="@dimen/_16sdp"
+                    android:layout_marginEnd="@dimen/_32sdp"
                     android:ems="10"
                     android:hint="Mật khẩu"
                     android:inputType="textPassword"
                     android:text="@={LoginViewModel.Password}" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <CheckBox
+                android:id="@+id/saveUser"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="@dimen/_32sdp"
+                android:text="Lưu tài khoản"
+                app:layout_constraintTop_toBottomOf="@id/password" />
+
             <Button
                 android:id="@+id/btnLogin"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="32dp"
-                android:layout_marginTop="32dp"
-                android:layout_marginEnd="32dp"
+                android:layout_marginStart="@dimen/_32sdp"
+                android:layout_marginTop="@dimen/_32sdp"
+                android:layout_marginEnd="@dimen/_32sdp"
                 android:background="@drawable/btn_onpress_background_gradient_blue"
                 android:onClick="@{(v) -> LoginViewModel.onClick(v)}"
                 android:text="Đăng nhập"
-                android:textSize="18sp"
+                android:textSize="@dimen/_18ssp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/password" />
+                app:layout_constraintTop_toBottomOf="@+id/saveUser" />
 
             <TextView
                 android:id="@+id/signUp"
@@ -99,7 +107,7 @@
                 android:layout_marginTop="16dp"
                 android:gravity="center"
                 android:text="Tạo tài khoản"
-                android:textSize="16sp"
+                android:textSize="@dimen/_16ssp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/btnLogin" />

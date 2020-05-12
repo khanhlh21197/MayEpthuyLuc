@@ -1,6 +1,11 @@
 package com.example.smarthome.common;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,16 +14,19 @@ import android.view.ViewGroup;
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.databinding.ViewDataBinding;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smarthome.BR;
+import com.example.smarthome.MainActivity;
 import com.example.smarthome.R;
 import com.example.smarthome.ui.device.DetailDeviceFragment;
 import com.example.smarthome.ui.device.model.Device;
 
 import java.util.List;
+import java.util.Objects;
 
 public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapter.ViewHolder> {
     private List<T> data;
@@ -26,6 +34,7 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
     private @LayoutRes
     int resId;
     private OnItemClickListener<T> onItemClickListener;
+    private Context mContext;
 
     public void setOnItemClickListener(OnItemClickListener<T> onItemClickListener) {
         this.onItemClickListener = onItemClickListener;
@@ -34,6 +43,7 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
     public BaseBindingAdapter(Context context, @LayoutRes int resId) {
         inflater = LayoutInflater.from(context);
         this.resId = resId;
+        mContext = context;
     }
 
     public void setData(List<T> data) {
@@ -67,6 +77,7 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
                 if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())){
                     holder.itemView.findViewById(R.id.imgWarning).setVisibility(View.VISIBLE);
                     holder.itemView.findViewById(R.id.imgWarning).setAnimation(DetailDeviceFragment.createFlashingAnimation());
+                    createNotification(device.getNG(), device.getId());
                 }else{
                     holder.itemView.findViewById(R.id.imgWarning).setVisibility(View.GONE);
                 }
@@ -87,6 +98,46 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
         public ViewHolder(ViewDataBinding inflate) {
             super(inflate.getRoot());
             this.binding = inflate;
+        }
+    }
+
+    private void createNotification(String ng, String idDevice) {
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(Objects.requireNonNull(mContext).getApplicationContext(), "notify_001");
+        Intent ii = new Intent(mContext.getApplicationContext(), MainActivity.class);
+        ii.putExtra("menuFragment", "DetailDeviceFragment");
+        ii.putExtra("idDevice", idDevice);
+        PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, ii, 0);
+
+        NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
+        bigText.bigText("Nhiệt độ đo được: " + ng);
+        bigText.setBigContentTitle("Nhiệt độ vượt ngưỡng !");
+        bigText.setSummaryText("Cảnh báo");
+
+        mBuilder.setContentIntent(pendingIntent);
+        mBuilder.setSmallIcon(R.drawable.ic_warning_red);
+        mBuilder.setContentTitle(mContext.getString(R.string.app_name));
+        mBuilder.setContentText("Nhiệt độ vượt ngưỡng !");
+        mBuilder.setPriority(Notification.PRIORITY_MAX);
+        mBuilder.setStyle(bigText);
+
+        NotificationManager mNotificationManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+
+// === Removed some obsoletes
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            String channelId = "Your_channel_id";
+            NotificationChannel channel = new NotificationChannel(
+                    channelId,
+                    "Channel human readable title",
+                    NotificationManager.IMPORTANCE_HIGH);
+            if (mNotificationManager != null) {
+                mNotificationManager.createNotificationChannel(channel);
+            }
+            mBuilder.setChannelId(channelId);
+        }
+
+        if (mNotificationManager != null) {
+            mNotificationManager.notify(0, mBuilder.build());
         }
     }
 

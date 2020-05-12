@@ -1,8 +1,6 @@
 package com.example.smarthome.ui.device;
 
 import android.annotation.SuppressLint;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
@@ -21,8 +19,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.MutableLiveData;
@@ -53,14 +49,16 @@ public class DetailDeviceFragment extends Fragment {
     private String deviceId = "";
     private int indexOfDevice = 0;
     private int total = 0;
+    private String idDevice;
     private int highTemp = 0;
     private ArrayList<Device> history = new ArrayList<>();
     private MutableLiveData<String> followTemp = new MutableLiveData<>();
 
-    public static DetailDeviceFragment newInstance(Device device) {
+    public static DetailDeviceFragment newInstance(Device device, String idDevice) {
 
         Bundle args = new Bundle();
         args.putSerializable("Device", device);
+        args.putString("idDevice", idDevice);
         DetailDeviceFragment fragment = new DetailDeviceFragment();
         fragment.setArguments(args);
         return fragment;
@@ -78,8 +76,6 @@ public class DetailDeviceFragment extends Fragment {
                         false);
         unit();
         initAdapter();
-//        createNotificationChannel();
-//        createNotification();
         return mBinding.getRoot();
     }
 
@@ -95,6 +91,7 @@ public class DetailDeviceFragment extends Fragment {
         Bundle bundle = getArguments();
         if (bundle != null) {
             device = (Device) bundle.getSerializable("Device");
+            idDevice = bundle.getString("idDevice");
         }
     }
 
@@ -154,7 +151,7 @@ public class DetailDeviceFragment extends Fragment {
                     historyAdapter.setData(history);
 //                    highTemp++;
 //                    viewModel.setTotal(indexOfDevice, String.valueOf(highTemp));
-                    startWarning();
+                    startWarning(device.getNG());
                     mBinding.btnWarning.setOnClickListener(v -> {
                         cancelWarning();
                     });
@@ -169,7 +166,7 @@ public class DetailDeviceFragment extends Fragment {
         });
     }
 
-    private void startWarning() {
+    private void startWarning(String ng) {
         playWarningSound();
         vibrate();
         mBinding.txtHumanTemp.setAnimation(createFlashingAnimation());
@@ -185,42 +182,6 @@ public class DetailDeviceFragment extends Fragment {
         mBinding.btnWarning.clearAnimation();
         mBinding.btnWarning.setVisibility(View.GONE);
         Toast.makeText(getActivity(), "Warning Cancelled", Toast.LENGTH_LONG).show();
-    }
-
-    private void createNotification() {
-        NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(Objects.requireNonNull(getActivity()), CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_warning_red)
-                .setContentTitle(getString(R.string.app_name))
-                .setContentText("Nhiệt độ vượt ngưỡng !")
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT);
-//        CustomNotification customNotification =
-//                new CustomNotification(Objects.requireNonNull(getActivity()),
-//                        "Channel",
-//                        123);
-//        customNotification.showNotify();
-    }
-
-    private void showNoti(){
-        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(Objects.requireNonNull(getActivity()));
-        notificationManager.notify();
-    }
-
-    private void createNotificationChannel() {
-        // Create the NotificationChannel, but only on API 26+ because
-        // the NotificationChannel class is new and not in the support library
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = getString(R.string.channel_name);
-            String description = getString(R.string.channel_description);
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
-            channel.setDescription(description);
-            // Register the channel with the system; you can't change the importance
-            // or other notification behaviors after this
-            NotificationManager notificationManager
-                    = Objects.requireNonNull(getActivity()).getSystemService(NotificationManager.class);
-            assert notificationManager != null;
-            notificationManager.createNotificationChannel(channel);
-        }
     }
 
     private void playWarningSound() {

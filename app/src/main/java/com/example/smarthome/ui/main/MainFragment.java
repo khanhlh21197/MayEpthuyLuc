@@ -1,6 +1,7 @@
 package com.example.smarthome.ui.main;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -96,11 +97,16 @@ public class MainFragment extends Fragment {
                 }
             });
             adapter.setData(devicesOfUser);
+            Intent tempMonitoringService = new Intent(getActivity(), TempMonitoringService.class);
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("devicesOfUser", devicesOfUser);
+            tempMonitoringService.putExtras(bundle);
+            getActivity().startService(tempMonitoringService);
         });
 
         adapter.setOnItemClickListener(item -> {
             ReplaceFragment.replaceFragment(getActivity(),
-                    DetailDeviceFragment.newInstance(item),
+                    DetailDeviceFragment.newInstance(item, idDevice),
                     true);
         });
     }
