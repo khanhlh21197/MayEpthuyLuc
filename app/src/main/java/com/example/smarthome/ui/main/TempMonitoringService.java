@@ -4,9 +4,9 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
@@ -14,13 +14,12 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
-import androidx.lifecycle.Lifecycle;
-import androidx.lifecycle.LifecycleOwner;
 import androidx.lifecycle.LifecycleService;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.smarthome.MainActivity;
 import com.example.smarthome.R;
+import com.example.smarthome.broadcast.Restarter;
 import com.example.smarthome.ui.device.model.Device;
 import com.example.smarthome.utils.FireBaseCallBack;
 import com.google.firebase.database.DataSnapshot;
@@ -31,11 +30,16 @@ import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
-public class TempMonitoringService extends LifecycleService{
+public class TempMonitoringService extends LifecycleService {
     MutableLiveData<Device> deviceMutableLiveData = new MutableLiveData<>();
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private DatabaseReference deviceRef = database.getReference("devices");
+    private Timer timer;
+    private TimerTask timerTask;
+    public int counter = 0;
 
     public TempMonitoringService() {
     }
@@ -46,9 +50,30 @@ public class TempMonitoringService extends LifecycleService{
         return null;
     }
 
+    public void startTimer() {
+        timer = new Timer();
+        timerTask = new TimerTask() {
+            public void run() {
+                Log.i("Count", "=========  " + (counter++));
+            }
+        };
+        timer.schedule(timerTask, 1000, 1000); //
+    }
+
+    public void stoptimertask() {
+        if (timer != null) {
+            timer.cancel();
+            timer = null;
+        }
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
+        if (Build.VERSION.SDK_INT > Build.VERSION_CODES.O)
+            startMyOwnForeground();
+        else
+            startForeground(1, new Notification());
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -56,6 +81,7 @@ public class TempMonitoringService extends LifecycleService{
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
         Log.v("TempMonitoringService", "onStartCommand");
+        startTimer();
         MainViewModel viewModel = new MainViewModel();
 //        MutableLiveData<DataSnapshot> liveDataSnapShot = new MutableLiveData<>();
 //        getFBData(liveDataSnapShot::setValue);
@@ -66,7 +92,7 @@ public class TempMonitoringService extends LifecycleService{
                     for (Device device : devices) {
                         try {
                             if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
-                                createNotification(device.getNG(), device.getId());
+                                createNotification(device.getNO(), device.getId());
                             }
                         } catch (NumberFormatException e) {
                             e.printStackTrace();
@@ -82,6 +108,13 @@ public class TempMonitoringService extends LifecycleService{
     public void onDestroy() {
         Log.v("TempMonitoringService", "onDestroy");
         super.onDestroy();
+
+        stoptimertask();
+
+        Intent broadcastIntent = new Intent();
+        broadcastIntent.setAction("restartservice");
+        broadcastIntent.setClass(this, Restarter.class);
+        this.sendBroadcast(broadcastIntent);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -101,7 +134,7 @@ public class TempMonitoringService extends LifecycleService{
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, ii, 0);
 
         NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
-        bigText.bigText("Nhiệt độ đo được: " + ng);
+        bigText.bigText("Nhiệt độ đo được: " + ng + " trên thiết bị: " + idDevice);
         bigText.setBigContentTitle("Nhiệt độ vượt ngưỡng !");
         bigText.setSummaryText("Cảnh báo");
 
@@ -131,6 +164,36 @@ public class TempMonitoringService extends LifecycleService{
             mNotificationManager.notify(0, mBuilder.build());
         }
     }
+
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private void startMyOwnForeground() {
+        String NOTIFICATION_CHANNEL_ID = "example.smarthome";
+        String channelName = "Background TempMonitoring Service";
+        NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
+        chan.setLightColor(Color.BLUE);
+        chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        assert manager != null;
+        manager.createNotificationChannel(chan);
+
+        NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
+
+//        NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
+//        bigText.bigText("Đang theo dõi nhiệt độ");
+
+        Notification notification = notificationBuilder.setOngoing(true)
+                .setSmallIcon(R.drawable.ic_warning_red)
+                .setContentTitle(getString(R.string.app_name))
+                .setContentText("Đang theo dõi nhiệt độ")
+                .setPriority(NotificationManager.IMPORTANCE_MIN)
+                .setCategory(Notification.CATEGORY_SERVICE)
+//                .setStyle(bigText)
+                .build();
+        startForeground(2, notification);
+    }
+
 
     private void getFBData(FireBaseCallBack<DataSnapshot> fireBaseCallBack) {
         deviceRef.addValueEventListener(new ValueEventListener() {

@@ -71,17 +71,17 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
             onItemClickListener.onItemClick(item);
         });
 
-        if (item instanceof Device){
+        if (item instanceof Device) {
             Device device = (Device) item;
-            try{
-                if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())){
+            try {
+                if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
                     holder.itemView.findViewById(R.id.imgWarning).setVisibility(View.VISIBLE);
                     holder.itemView.findViewById(R.id.imgWarning).setAnimation(DetailDeviceFragment.createFlashingAnimation());
-                    createNotification(device.getNG(), device.getId());
-                }else{
+                    createNotification(device.getNO(), device.getId());
+                } else {
                     holder.itemView.findViewById(R.id.imgWarning).setVisibility(View.GONE);
                 }
-            }catch (NumberFormatException e){
+            } catch (NumberFormatException e) {
                 e.printStackTrace();
             }
         }
@@ -110,7 +110,7 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
         PendingIntent pendingIntent = PendingIntent.getActivity(mContext, 0, ii, 0);
 
         NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
-        bigText.bigText("Nhiệt độ đo được: " + ng);
+        bigText.bigText("Nhiệt độ đo được: " + ng + " tại thiết bị: " + idDevice);
         bigText.setBigContentTitle("Nhiệt độ vượt ngưỡng !");
         bigText.setSummaryText("Cảnh báo");
 

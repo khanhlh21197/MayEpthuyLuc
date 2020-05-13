@@ -11,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.security.keystore.KeyProperties;
@@ -184,8 +185,14 @@ public class LoginFragment extends Fragment implements Result {
         sharedPreferences = Objects.requireNonNull(getActivity()).getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
         String email = sharedPreferences.getString("email", "");
         String password = sharedPreferences.getString("password", "");
-        if (!CommonActivity.isNullOrEmpty(email) && !CommonActivity.isNullOrEmpty(password)){
-            binding.btnLogin.performClick();
+        boolean saveUser = sharedPreferences.getBoolean("saveUser", false);
+        if (!CommonActivity.isNullOrEmpty(email) && !CommonActivity.isNullOrEmpty(password)) {
+            binding.txtEmailAddress.setText(email);
+            binding.txtPassword.setText(password);
+            binding.saveUser.setChecked(saveUser);
+            binding.txtEmailAddress.setHint("");
+            binding.txtPassword.setHint("");
+            new Handler().postDelayed(() -> binding.btnLogin.performClick(), 10);
         }
 
         loginViewModel = ViewModelProviders.of((FragmentActivity) mActivity).get(LoginViewModel.class);
@@ -207,14 +214,16 @@ public class LoginFragment extends Fragment implements Result {
 
     @Override
     public void onSuccess(Object o, String message) {
-        if (binding.saveUser.isChecked()){
+        if (binding.saveUser.isChecked()) {
             User user = (User) o;
             String email = user.getEmail();
             String password = user.getPassword();
+            boolean saveUser = binding.saveUser.isChecked();
 
             @SuppressLint("CommitPrefEdits") SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString("email", email);
             editor.putString("password", password);
+            editor.putBoolean("saveUser", saveUser);
             editor.apply();
         }
 
