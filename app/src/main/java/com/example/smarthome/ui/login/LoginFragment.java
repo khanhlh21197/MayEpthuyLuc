@@ -187,12 +187,12 @@ public class LoginFragment extends Fragment implements Result {
         String password = sharedPreferences.getString("password", "");
         boolean saveUser = sharedPreferences.getBoolean("saveUser", false);
         if (!CommonActivity.isNullOrEmpty(email) && !CommonActivity.isNullOrEmpty(password)) {
+            binding.txtEmailAddress.setHint("");
+            binding.txtPassword.setHint("");
             binding.txtEmailAddress.setText(email);
             binding.txtPassword.setText(password);
             binding.saveUser.setChecked(saveUser);
-            binding.txtEmailAddress.setHint("");
-            binding.txtPassword.setHint("");
-            new Handler().postDelayed(() -> binding.btnLogin.performClick(), 10);
+//            new Handler().postDelayed(() -> binding.btnLogin.performClick(), 10);
         }
 
         loginViewModel = ViewModelProviders.of((FragmentActivity) mActivity).get(LoginViewModel.class);

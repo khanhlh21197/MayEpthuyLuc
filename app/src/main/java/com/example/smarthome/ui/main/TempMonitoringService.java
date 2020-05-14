@@ -30,6 +30,7 @@ import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -89,10 +90,13 @@ public class TempMonitoringService extends LifecycleService {
         viewModel.getAllDevices().observe(this, dataSnapshot -> {
             getData(dataSnapshot, devices -> {
                 if (devices != null) {
-                    for (Device device : devices) {
+                    for (int i= 0; i< devices.size(); i++) {
                         try {
+                            Device device = devices.get(i);
                             if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
-                                createNotification(device.getNO(), device.getId());
+//                                Random random = new Random();
+//                                int idNoti = random.nextInt();
+                                createNotification(device.getNO(), device.getId(), i);
                             }
                         } catch (NumberFormatException e) {
                             e.printStackTrace();
@@ -125,7 +129,7 @@ public class TempMonitoringService extends LifecycleService {
         callBack.afterDataChanged(devices);
     }
 
-    private void createNotification(String ng, String idDevice) {
+    private void createNotification(String ng, String idDevice, int idNoti) {
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(getApplicationContext(), "notify_001");
         Intent ii = new Intent(getApplicationContext(), MainActivity.class);
@@ -161,7 +165,7 @@ public class TempMonitoringService extends LifecycleService {
         }
 
         if (mNotificationManager != null) {
-            mNotificationManager.notify(0, mBuilder.build());
+            mNotificationManager.notify(idNoti, mBuilder.build());
         }
     }
 
@@ -191,7 +195,7 @@ public class TempMonitoringService extends LifecycleService {
                 .setCategory(Notification.CATEGORY_SERVICE)
 //                .setStyle(bigText)
                 .build();
-        startForeground(2, notification);
+        startForeground(9, notification);
     }
 
 
