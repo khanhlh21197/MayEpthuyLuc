@@ -24,9 +24,29 @@ public class MainViewModel extends ViewModel {
         return liveDataSnapShot;
     }
 
+    public MutableLiveData<DataSnapshot> getDevicesOfUser(String idDevice){
+        MutableLiveData<DataSnapshot> liveDataSnapShot = new MutableLiveData<>();
+        getFBDevicesOfUser(liveDataSnapShot::setValue, idDevice);
+        return liveDataSnapShot;
+    }
+
 
     private void getFBData(FireBaseCallBack<DataSnapshot> fireBaseCallBack) {
         deviceRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                fireBaseCallBack.afterDataChanged(dataSnapshot);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private void getFBDevicesOfUser(FireBaseCallBack<DataSnapshot> fireBaseCallBack, String idDevice) {
+        deviceRef.child(idDevice).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 fireBaseCallBack.afterDataChanged(dataSnapshot);

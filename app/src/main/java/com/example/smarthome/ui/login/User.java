@@ -16,6 +16,12 @@ public class User implements Serializable {
     @SerializedName("email")
     @Expose
     private String email;
+    @SerializedName("uid")
+    @Expose
+    private String uid;
+    @SerializedName("isAuthenticated")
+    @Expose
+    private boolean isAuthenticated;
     @SerializedName("password")
     @Expose
     private String password;
@@ -56,6 +62,14 @@ public class User implements Serializable {
     public User() {
     }
 
+    public String getUid() {
+        return uid;
+    }
+
+    public void setUid(String uid) {
+        this.uid = uid;
+    }
+
     public String getEmail() {
         return email;
     }
@@ -83,23 +97,23 @@ public class User implements Serializable {
     @Exclude
     public Map<String, Object> toMap() {
         HashMap<String, Object> result = new HashMap<>();
-        if (!CommonActivity.isNullOrEmpty(idDevice)) {
-            result.put("idDevice", idDevice);
+        if (!CommonActivity.isNullOrEmpty(this.idDevice)) {
+            result.put("idDevice", this.idDevice);
         }
-        if (!CommonActivity.isNullOrEmpty(name)) {
-            result.put("name", name);
+        if (!CommonActivity.isNullOrEmpty(this.name)) {
+            result.put("name", this.name);
         }
-        if (!CommonActivity.isNullOrEmpty(email)) {
-            result.put("email", email);
+        if (!CommonActivity.isNullOrEmpty(this.email)) {
+            result.put("email", this.email);
         }
-        if (!CommonActivity.isNullOrEmpty(address)) {
-            result.put("address", address);
+        if (!CommonActivity.isNullOrEmpty(this.address)) {
+            result.put("address", this.address);
         }
-        if (!CommonActivity.isNullOrEmpty(mobile)) {
-            result.put("mobile", mobile);
+        if (!CommonActivity.isNullOrEmpty(this.mobile)) {
+            result.put("mobile", this.mobile);
         }
-        if (!CommonActivity.isNullOrEmpty(password)) {
-            result.put("password", password);
+        if (!CommonActivity.isNullOrEmpty(this.password)) {
+            result.put("password", this.password);
         }
         return result;
     }

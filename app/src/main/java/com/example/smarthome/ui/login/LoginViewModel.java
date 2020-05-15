@@ -2,6 +2,7 @@ package com.example.smarthome.ui.login;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -11,6 +12,7 @@ import androidx.lifecycle.ViewModel;
 import com.example.smarthome.common.CommonActivity;
 import com.example.smarthome.utils.FireBaseCallBack;
 import com.example.smarthome.utils.Result;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -26,6 +28,7 @@ public class LoginViewModel extends ViewModel {
     public MutableLiveData<String> Email = new MutableLiveData<>();
     public MutableLiveData<String> Password = new MutableLiveData<>();
     private User user = null;
+    private String userID = "";
 
     private ArrayList<User> users = new ArrayList<>();
     private Result<User> result;
@@ -39,6 +42,9 @@ public class LoginViewModel extends ViewModel {
             users.clear();
             for (DataSnapshot d : item.getChildren()) {
                 User user = d.getValue(User.class);
+                if (user != null) {
+                    user.setUid(d.getKey());
+                }
                 users.add(user);
             }
         });
@@ -77,6 +83,8 @@ public class LoginViewModel extends ViewModel {
             for (User user : users) {
                 if (user.getEmail().equals(inputUser.getEmail())
                         && user.getPassword().equals(inputUser.getPassword())) {
+                    userID = user.getUid();
+                    Log.d("isLoginSuccess", userID);
                     this.user = user;
                     return true;
                 }
@@ -89,5 +97,14 @@ public class LoginViewModel extends ViewModel {
 
     public User getUser() {
         return user;
+    }
+
+    public void insertDevice(String idDevice){
+        if (userID != null) {
+            userRef.child(userID).child("idDevice").setValue(idDevice);
+            Log.d(userID, "insert success");
+        }else{
+            Log.d("userID", "insert fail");
+        }
     }
 }

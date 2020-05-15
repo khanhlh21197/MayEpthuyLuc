@@ -7,10 +7,14 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
@@ -24,9 +28,11 @@ import com.example.smarthome.databinding.MainFragmentBinding;
 import com.example.smarthome.ui.device.DetailDeviceFragment;
 import com.example.smarthome.ui.device.DetailDeviceViewModel;
 import com.example.smarthome.ui.device.model.Device;
+import com.example.smarthome.ui.login.LoginViewModel;
 import com.example.smarthome.utils.FireBaseCallBack;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.GenericTypeIndicator;
+import com.google.zxing.integration.android.IntentIntegrator;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -34,10 +40,12 @@ import java.util.Objects;
 public class MainFragment extends Fragment {
 
     private MainViewModel mainViewModel;
+    private LoginViewModel loginViewModel;
     private DetailDeviceViewModel detailDeviceViewModel;
     private BaseBindingAdapter<Device> adapter;
     private MainFragmentBinding mainFragmentBinding;
     private String idDevice;
+    private EditText txtInputDevice;
 
     public static MainFragment newInstance(String idDevice) {
 
@@ -60,7 +68,14 @@ public class MainFragment extends Fragment {
         getBundleData();
         mainFragmentBinding = DataBindingUtil.inflate(inflater, R.layout.main_fragment, container, false);
         unit();
+        onFabClicked();
         return mainFragmentBinding.getRoot();
+    }
+
+    private void onFabClicked() {
+        mainFragmentBinding.fab.setOnClickListener(v -> {
+            displayAlertDialog();
+        });
     }
 
     private void getBundleData() {
@@ -72,6 +87,9 @@ public class MainFragment extends Fragment {
 
     @SuppressLint("NewApi")
     private void unit() {
+        loginViewModel = ViewModelProviders
+                .of(Objects.requireNonNull(getActivity()))
+                .get(LoginViewModel.class);
         detailDeviceViewModel = ViewModelProviders
                 .of(Objects.requireNonNull(getActivity()))
                 .get(DetailDeviceViewModel.class);
@@ -94,13 +112,11 @@ public class MainFragment extends Fragment {
                             devicesOfUser.add(device);
                         }
                     }
+                    adapter.setData(devicesOfUser);
                 }
             });
-            adapter.setData(devicesOfUser);
             Intent tempMonitoringService = new Intent(getActivity(), TempMonitoringService.class);
-            Bundle bundle = new Bundle();
-            bundle.putSerializable("devicesOfUser", devicesOfUser);
-            tempMonitoringService.putExtras(bundle);
+            tempMonitoringService.putExtra("idDevice", idDevice);
             getActivity().startService(tempMonitoringService);
         });
 
@@ -113,7 +129,8 @@ public class MainFragment extends Fragment {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void getData(DataSnapshot dataSnapshot, FireBaseCallBack<ArrayList<Device>> callBack) {
-        GenericTypeIndicator<ArrayList<Device>> t = new GenericTypeIndicator<ArrayList<Device>>() {};
+        GenericTypeIndicator<ArrayList<Device>> t = new GenericTypeIndicator<ArrayList<Device>>() {
+        };
         ArrayList<Device> devices = dataSnapshot.getValue(t);
         callBack.afterDataChanged(devices);
     }
@@ -121,6 +138,39 @@ public class MainFragment extends Fragment {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+    }
+
+    private void displayAlertDialog() {
+        LayoutInflater inflater = getLayoutInflater();
+        View alertLayout = inflater.inflate(R.layout.enter_firebase_url_dialog, null);
+        txtInputDevice = alertLayout.findViewById(R.id.txtInputDevice);
+        ImageView scanBarcode = alertLayout.findViewById(R.id.scanBarcode);
+
+        AlertDialog.Builder alert = new AlertDialog.Builder(Objects.requireNonNull(getActivity()));
+        alert.setTitle(R.string.app_name);
+        alert.setView(alertLayout);
+        alert.setCancelable(false);
+
+        scanBarcode.setOnClickListener(v -> {
+            Intent scanIntent = new IntentIntegrator(getActivity())
+                    .setBeepEnabled(false)
+                    .createScanIntent();
+            startActivityForResult(scanIntent, 1);
+        });
+
+        alert.setNegativeButton("Hủy", (dialog, which)
+                -> Toast.makeText(getActivity(), "Cancel clicked", Toast.LENGTH_SHORT).show());
+
+        alert.setPositiveButton("Đồng ý", (dialog, which) -> {
+            if (txtInputDevice.getText() != null) {
+                idDevice += txtInputDevice.getText().toString();
+                loginViewModel.insertDevice(idDevice);
+            } else {
+                Toast.makeText(getActivity(), "Vui lòng nhập tên thiết bị", Toast.LENGTH_SHORT).show();
+            }
+        });
+        AlertDialog dialog = alert.create();
+        dialog.show();
     }
 
 }

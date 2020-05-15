@@ -39,13 +39,13 @@ public class MainActivity extends AppCompatActivity {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.add(R.id.frame_container, LoginFragment.newInstance()).commit();
-        String menuFragment = getIntent().getStringExtra("menuFragment");
-        String idDevice = getIntent().getStringExtra("idDevice");
-        if (!CommonActivity.isNullOrEmpty(menuFragment)){
-            if (menuFragment.equals("DetailDeviceFragment")){
-                ReplaceFragment.replaceFragment(this, MainFragment.newInstance(idDevice), false);
-            }
-        }
+//        String menuFragment = getIntent().getStringExtra("menuFragment");
+//        String idDevice = getIntent().getStringExtra("idDevice");
+//        if (!CommonActivity.isNullOrEmpty(menuFragment)){
+//            if (menuFragment.equals("DetailDeviceFragment")){
+//                ReplaceFragment.replaceFragment(this, MainFragment.newInstance(idDevice), false);
+//            }
+//        }
 //        BottomNavigationView bottom = findViewById(R.id.navigation);
 //        toolBar = getSupportActionBar();
 //        bottom.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);

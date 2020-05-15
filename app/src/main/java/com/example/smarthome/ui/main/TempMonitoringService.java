@@ -15,7 +15,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.lifecycle.LifecycleService;
-import androidx.lifecycle.MutableLiveData;
 
 import com.example.smarthome.MainActivity;
 import com.example.smarthome.R;
@@ -30,16 +29,14 @@ import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
-import java.util.Random;
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class TempMonitoringService extends LifecycleService {
-    MutableLiveData<Device> deviceMutableLiveData = new MutableLiveData<>();
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private DatabaseReference deviceRef = database.getReference("devices");
     private Timer timer;
-    private TimerTask timerTask;
     public int counter = 0;
 
     public TempMonitoringService() {
@@ -53,7 +50,7 @@ public class TempMonitoringService extends LifecycleService {
 
     public void startTimer() {
         timer = new Timer();
-        timerTask = new TimerTask() {
+        TimerTask timerTask = new TimerTask() {
             public void run() {
                 Log.i("Count", "=========  " + (counter++));
             }
@@ -81,21 +78,17 @@ public class TempMonitoringService extends LifecycleService {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
+        String idDevice = Objects.requireNonNull(intent.getExtras()).getString("idDevice");
         Log.v("TempMonitoringService", "onStartCommand");
         startTimer();
         MainViewModel viewModel = new MainViewModel();
-//        MutableLiveData<DataSnapshot> liveDataSnapShot = new MutableLiveData<>();
-//        getFBData(liveDataSnapShot::setValue);
-//        liveDataSnapShot.observe();
-        viewModel.getAllDevices().observe(this, dataSnapshot -> {
+        viewModel.getDevicesOfUser(idDevice).observe(this, dataSnapshot -> {
             getData(dataSnapshot, devices -> {
                 if (devices != null) {
-                    for (int i= 0; i< devices.size(); i++) {
+                    for (int i = 0; i < devices.size(); i++) {
                         try {
                             Device device = devices.get(i);
                             if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
-//                                Random random = new Random();
-//                                int idNoti = random.nextInt();
                                 createNotification(device.getNO(), device.getId(), i);
                             }
                         } catch (NumberFormatException e) {
@@ -174,6 +167,9 @@ public class TempMonitoringService extends LifecycleService {
     private void startMyOwnForeground() {
         String NOTIFICATION_CHANNEL_ID = "example.smarthome";
         String channelName = "Background TempMonitoring Service";
+
+        //get Bundle Data
+
         NotificationChannel chan = new NotificationChannel(NOTIFICATION_CHANNEL_ID, channelName, NotificationManager.IMPORTANCE_NONE);
         chan.setLightColor(Color.BLUE);
         chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
