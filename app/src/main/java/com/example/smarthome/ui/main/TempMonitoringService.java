@@ -18,7 +18,7 @@ import androidx.lifecycle.LifecycleService;
 
 import com.example.smarthome.MainActivity;
 import com.example.smarthome.R;
-import com.example.smarthome.broadcast.Restarter;
+import com.example.smarthome.common.CommonActivity;
 import com.example.smarthome.ui.device.model.Device;
 import com.example.smarthome.utils.FireBaseCallBack;
 import com.google.firebase.database.DataSnapshot;
@@ -78,26 +78,47 @@ public class TempMonitoringService extends LifecycleService {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
-        String idDevice = Objects.requireNonNull(intent.getExtras()).getString("idDevice");
-        Log.v("TempMonitoringService", "onStartCommand");
-        startTimer();
-        MainViewModel viewModel = new MainViewModel();
-        viewModel.getDevicesOfUser(idDevice).observe(this, dataSnapshot -> {
-            getData(dataSnapshot, devices -> {
-                if (devices != null) {
-                    for (int i = 0; i < devices.size(); i++) {
-                        try {
-                            Device device = devices.get(i);
-                            if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
-                                createNotification(device.getNO(), device.getId(), i);
+        if (!CommonActivity.isNullOrEmpty(intent)
+                && !CommonActivity.isNullOrEmpty(intent.getExtras())
+                && !CommonActivity.isNullOrEmpty(intent.getExtras().getString("idDevice"))) {
+            String idDevice = Objects.requireNonNull(intent.getExtras()).getString("idDevice");
+            Log.v("TempMonitoringService", "onStartCommand");
+            startTimer();
+            MainViewModel viewModel = new MainViewModel();
+            if (!CommonActivity.isNullOrEmpty(idDevice)){
+                viewModel.getAllDevices().observe(Objects.requireNonNull(this), dataSnapshot -> {
+                    getData(dataSnapshot, devices -> {
+                        if (devices != null) {
+                            for (int i= 0; i< devices.size(); i++) {
+                                Device device = devices.get(i);
+                                if (idDevice.contains(device.getId())) {
+                                    if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
+                                        createNotification(device.getNO(), device.getId(), i);
+                                    }
+                                }
                             }
-                        } catch (NumberFormatException e) {
-                            e.printStackTrace();
                         }
-                    }
-                }
-            });
-        });
+                    });
+                });
+            }
+//            viewModel.getDevicesOfUser(idDevice).observe(this, dataSnapshot -> {
+//                GenericTypeIndicator<ArrayList<Device>> t = new GenericTypeIndicator<ArrayList<Device>>() {
+//                };
+//                ArrayList<Device> devices = dataSnapshot.getValue(t);
+//                if (devices != null) {
+//                    for (int i = 0; i < devices.size(); i++) {
+//                        try {
+//                            Device device = devices.get(i);
+//                            if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
+//                                createNotification(device.getNO(), device.getId(), i);
+//                            }
+//                        } catch (NumberFormatException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                }
+//            });
+        }
         return START_STICKY;
     }
 
@@ -107,11 +128,11 @@ public class TempMonitoringService extends LifecycleService {
         super.onDestroy();
 
         stoptimertask();
-
-        Intent broadcastIntent = new Intent();
-        broadcastIntent.setAction("restartservice");
-        broadcastIntent.setClass(this, Restarter.class);
-        this.sendBroadcast(broadcastIntent);
+//auto restart service
+//        Intent broadcastIntent = new Intent();
+//        broadcastIntent.setAction("restartservice");
+//        broadcastIntent.setClass(this, Restarter.class);
+//        this.sendBroadcast(broadcastIntent);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -144,7 +165,6 @@ public class TempMonitoringService extends LifecycleService {
 
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
-// === Removed some obsoletes
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             String channelId = "Your_channel_id";
             NotificationChannel channel = new NotificationChannel(
@@ -192,20 +212,5 @@ public class TempMonitoringService extends LifecycleService {
 //                .setStyle(bigText)
                 .build();
         startForeground(9, notification);
-    }
-
-
-    private void getFBData(FireBaseCallBack<DataSnapshot> fireBaseCallBack) {
-        deviceRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                fireBaseCallBack.afterDataChanged(dataSnapshot);
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
     }
 }

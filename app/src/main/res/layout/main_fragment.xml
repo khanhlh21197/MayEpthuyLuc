@@ -24,19 +24,19 @@
                 android:id="@+id/label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_8sdp"
                 android:text="Quản lý thiết bị"
                 android:textSize="@dimen/_22ssp"
-                app:layout_constraintBottom_toTopOf="@id/listDevice"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <androidx.constraintlayout.widget.Guideline
-                android:id="@+id/guideline"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                app:layout_constraintGuide_percent="0.5" />
+            <!--            <androidx.constraintlayout.widget.Guideline-->
+            <!--                android:id="@+id/guideline"-->
+            <!--                android:layout_width="wrap_content"-->
+            <!--                android:layout_height="wrap_content"-->
+            <!--                android:orientation="vertical"-->
+            <!--                app:layout_constraintGuide_percent="0.5" />-->
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/listDevice"
@@ -44,7 +44,6 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/_16sdp"
                 app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintLeft_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/label"
@@ -57,7 +56,30 @@
                 android:layout_height="wrap_content"
                 android:src="@drawable/ic_add_black_24dp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/listDevice" />
+
+            <TextView
+                android:id="@+id/tvObserve"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/_8sdp"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:text="Bật theo dõi nhiệt độ"
+                android:textSize="@dimen/_14ssp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/switchObserve"
+                app:layout_constraintTop_toBottomOf="@id/fab" />
+
+            <Switch
+                android:id="@+id/switchObserve"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/_8sdp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/tvObserve"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@id/tvObserve" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

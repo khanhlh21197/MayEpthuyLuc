@@ -71,6 +71,11 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
             onItemClickListener.onItemClick(item);
         });
 
+        holder.itemView.setOnLongClickListener(v -> {
+            onItemClickListener.onItemLongClick(item);
+            return false;
+        });
+
         if (item instanceof Device) {
             Device device = (Device) item;
             try {
@@ -143,6 +148,8 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
 
     public interface OnItemClickListener<T> {
         void onItemClick(T item);
+
+        void onItemLongClick(T item);
     }
 }
 
