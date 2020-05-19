@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Objects;
 
 public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapter.ViewHolder> {
+    private static final int EMPTY_VIEW = 10;
+
     private List<T> data;
     private LayoutInflater inflater;
     private @LayoutRes
@@ -58,6 +60,12 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
     @NonNull
     @Override
     public BaseBindingAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+//        if (viewType == EMPTY_VIEW) {
+//            return new ViewHolder(DataBindingUtil.inflate(inflater,
+//                    R.layout.item_empty_device,
+//                    parent,
+//                    false));
+//        }
         return new ViewHolder(DataBindingUtil.inflate(inflater, resId, parent, false));
     }
 
@@ -79,12 +87,16 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
         if (item instanceof Device) {
             Device device = (Device) item;
             try {
-                if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
-                    holder.itemView.findViewById(R.id.imgWarning).setVisibility(View.VISIBLE);
-                    holder.itemView.findViewById(R.id.imgWarning).setAnimation(DetailDeviceFragment.createFlashingAnimation());
-                    createNotification(device.getNO(), device.getId());
-                } else {
-                    holder.itemView.findViewById(R.id.imgWarning).setVisibility(View.GONE);
+                if (!CommonActivity.isNullOrEmpty(device.getNO())
+                        && !CommonActivity.isNullOrEmpty(device.getNG())) {
+                    if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
+                        holder.itemView.findViewById(R.id.imgWarning).setVisibility(View.VISIBLE);
+                        holder.itemView.findViewById(R.id.imgWarning)
+                                .setAnimation(DetailDeviceFragment.createFlashingAnimation());
+                        createNotification(device.getNO(), device.getId());
+                    } else {
+                        holder.itemView.findViewById(R.id.imgWarning).setVisibility(View.GONE);
+                    }
                 }
             } catch (NumberFormatException e) {
                 e.printStackTrace();
@@ -97,6 +109,20 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
         return data == null ? 0 : data.size();
     }
 
+//    @RequiresApi(api = Build.VERSION_CODES.O)
+//    @Override
+//    public int getItemViewType(int position) {
+//        try {
+//            Device device = (Device) data.get(position);
+//            if (CommonActivity.isNullOrEmpty(device.getId())) {
+//                return EMPTY_VIEW;
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return super.getItemViewType(position);
+//    }
+
     public class ViewHolder extends RecyclerView.ViewHolder {
         ViewDataBinding binding;
 
@@ -108,7 +134,8 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
 
     private void createNotification(String ng, String idDevice) {
         NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(Objects.requireNonNull(mContext).getApplicationContext(), "notify_001");
+                new NotificationCompat.Builder(Objects.requireNonNull(mContext)
+                        .getApplicationContext(), "notify_001");
         Intent ii = new Intent(mContext.getApplicationContext(), MainActivity.class);
         ii.putExtra("menuFragment", "DetailDeviceFragment");
         ii.putExtra("idDevice", idDevice);
@@ -126,7 +153,8 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
         mBuilder.setPriority(Notification.PRIORITY_MAX);
         mBuilder.setStyle(bigText);
 
-        NotificationManager mNotificationManager = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager mNotificationManager
+                = (NotificationManager) mContext.getSystemService(Context.NOTIFICATION_SERVICE);
 
 // === Removed some obsoletes
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
@@ -148,6 +176,8 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
 
     public interface OnItemClickListener<T> {
         void onItemClick(T item);
+
+        void onItemEmptyClick(T item);
 
         void onItemLongClick(T item);
     }

@@ -21,6 +21,7 @@ import com.example.smarthome.R;
 import com.example.smarthome.common.CommonActivity;
 import com.example.smarthome.ui.device.model.Device;
 import com.example.smarthome.utils.FireBaseCallBack;
+import com.example.smarthome.utils.StringUtils;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;

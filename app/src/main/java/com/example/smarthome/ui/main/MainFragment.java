@@ -33,6 +33,7 @@ import com.example.smarthome.utils.FireBaseCallBack;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.GenericTypeIndicator;
 import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -77,7 +78,7 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void onFabClicked() {
         mainFragmentBinding.fab.setOnClickListener(v -> {
-            displayAlertDialog();
+            addDevice();
         });
     }
 
@@ -143,9 +144,15 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
                     }
                     if (!CommonActivity.isNullOrEmpty(devicesOfUser)) {
                         mainFragmentBinding.listDevice.setVisibility(View.VISIBLE);
+                        mainFragmentBinding.tvEmpty.setVisibility(View.GONE);
+                        mainFragmentBinding.tvObserve.setVisibility(View.VISIBLE);
+                        mainFragmentBinding.switchObserve.setVisibility(View.VISIBLE);
                         adapter.setData(devicesOfUser);
                     } else {
                         mainFragmentBinding.listDevice.setVisibility(View.GONE);
+                        mainFragmentBinding.tvEmpty.setVisibility(View.VISIBLE);
+                        mainFragmentBinding.tvObserve.setVisibility(View.GONE);
+                        mainFragmentBinding.switchObserve.setVisibility(View.GONE);
                     }
                     tempMonitoringService = new Intent(getActivity(), TempMonitoringService.class);
                     tempMonitoringService.putExtra("idDevice", idDevice);
@@ -169,7 +176,7 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void displayAlertDialog() {
+    private void addDevice() {
         LayoutInflater inflater = getLayoutInflater();
         View alertLayout = inflater.inflate(R.layout.enter_firebase_url_dialog, null);
         txtInputDevice = alertLayout.findViewById(R.id.txtInputDevice);
@@ -212,12 +219,18 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
-    public void onItemLongClick(Device item) {
-        displayDeleteDialog(item);
+    public void onItemEmptyClick(Device item) {
+        addDevice();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void displayDeleteDialog(Device item) {
+    @Override
+    public void onItemLongClick(Device item) {
+        deleteDevice(item);
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void deleteDevice(Device item) {
         Objects.requireNonNull(CommonActivity.createDialog(getActivity(),
                 "Bạn có muốn xóa thiết bị " + item.getId() + "?",
                 getString(R.string.app_name),
@@ -231,5 +244,22 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
                     }
                 },
                 null)).show();
+    }
+
+    interface DataTransfer {
+        void transferIdDevice(String idDevice);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        IntentResult result = IntentIntegrator.parseActivityResult(49374, resultCode, data);
+
+        if (result != null) {
+            if (result.getContents() != null) {
+                if (requestCode == 1) {
+                    txtInputDevice.setText(result.getContents());
+                }
+            }
+        }
     }
 }
