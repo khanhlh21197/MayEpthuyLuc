@@ -3,6 +3,7 @@ package com.example.smarthome.ui.device;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.VibrationEffect;
@@ -26,33 +27,31 @@ import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.smarthome.R;
-import com.example.smarthome.common.BaseBindingAdapter;
 import com.example.smarthome.common.CommonActivity;
 import com.example.smarthome.databinding.DetailDeviceFragmentBinding;
+import com.example.smarthome.serializer.ObjectSerializer;
 import com.example.smarthome.ui.device.model.Device;
 import com.example.smarthome.warning.WarningService;
 import com.google.firebase.database.GenericTypeIndicator;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Objects;
 
 public class DetailDeviceFragment extends Fragment {
-    private static final String CHANNEL_ID = "NotificationChannel";
+    private static final String SHARED_PREFS_HISTORY = "SHARED_PREFS_HISTORY";
+    private static final String KEY_HISTORY = "HISTORY";
+
     private DetailDeviceFragmentBinding mBinding;
     private DetailDeviceViewModel viewModel;
     private Device device;
     private MutableLiveData<Device> liveData = new MutableLiveData<>();
-    private BaseBindingAdapter<Device> mAdapter;
     private HistoryAdapter historyAdapter;
     private Intent warningIntent;
     private Vibrator v;
-    private String deviceId = "";
     private int indexOfDevice = 0;
-    private int total = 0;
-    private String idDevice;
     private int highTemp = 0;
     private ArrayList<Device> history = new ArrayList<>();
-    private MutableLiveData<String> followTemp = new MutableLiveData<>();
 
     public static DetailDeviceFragment newInstance(Device device, String idDevice) {
 
@@ -76,7 +75,20 @@ public class DetailDeviceFragment extends Fragment {
                         false);
         unit();
         initAdapter();
+        getHistory();
         return mBinding.getRoot();
+    }
+
+    private void getHistory() {
+        if (CommonActivity.isNullOrEmpty(history)) {
+            history = new ArrayList<>();
+        }
+        SharedPreferences prefs = Objects.requireNonNull(getActivity()).getSharedPreferences(SHARED_PREFS_HISTORY, Context.MODE_PRIVATE);
+        try {
+            history = (ArrayList<Device>) ObjectSerializer.deserialize(prefs.getString(KEY_HISTORY, ObjectSerializer.serialize(new ArrayList<Device>())));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void initAdapter() {
@@ -91,7 +103,6 @@ public class DetailDeviceFragment extends Fragment {
         Bundle bundle = getArguments();
         if (bundle != null) {
             device = (Device) bundle.getSerializable("Device");
-            idDevice = bundle.getString("idDevice");
         }
     }
 
@@ -144,10 +155,10 @@ public class DetailDeviceFragment extends Fragment {
     private void observeTemperature() {
         liveData.observe(Objects.requireNonNull(getActivity()), device -> {
             mBinding.setDetailDevice(device);
-            deviceId = device.getId();
             try {
                 if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
                     history.add(device);
+                    saveHistory(history);
                     historyAdapter.setData(history);
 //                    highTemp++;
 //                    viewModel.setTotal(indexOfDevice, String.valueOf(highTemp));
@@ -225,5 +236,17 @@ public class DetailDeviceFragment extends Fragment {
 //        if (!CommonActivity.isNullOrEmpty(getActivity()))
 //        getActivity().unregisterReceiver(receiver);
         super.onPause();
+    }
+
+    private void saveHistory(ArrayList<Device> history) {
+        // save the task list to preference
+        SharedPreferences prefs = Objects.requireNonNull(getActivity()).getSharedPreferences(SHARED_PREFS_HISTORY, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        try {
+            editor.putString(KEY_HISTORY, ObjectSerializer.serialize(history));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        editor.apply();
     }
 }

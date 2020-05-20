@@ -2,9 +2,10 @@ package com.example.smarthome;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -15,12 +16,9 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.example.smarthome.common.CommonActivity;
-import com.example.smarthome.common.ReplaceFragment;
-import com.example.smarthome.ui.device.DetailDeviceFragment;
 import com.example.smarthome.ui.login.LoginFragment;
-import com.example.smarthome.ui.main.MainFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 public class MainActivity extends AppCompatActivity {
     private ActionBar toolBar;
@@ -39,6 +37,11 @@ public class MainActivity extends AppCompatActivity {
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.add(R.id.frame_container, LoginFragment.newInstance()).commit();
+        FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(MainActivity.this, instanceIdResult -> {
+            String newToken = instanceIdResult.getToken();
+            Log.d("token", newToken);
+            Toast.makeText(MainActivity.this, newToken, Toast.LENGTH_SHORT).show();
+        });
 //        String menuFragment = getIntent().getStringExtra("menuFragment");
 //        String idDevice = getIntent().getStringExtra("idDevice");
 //        if (!CommonActivity.isNullOrEmpty(menuFragment)){

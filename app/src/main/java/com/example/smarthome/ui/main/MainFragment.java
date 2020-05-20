@@ -85,7 +85,9 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
     private void getBundleData() {
         Bundle bundle = getArguments();
         if (!CommonActivity.isNullOrEmpty(bundle)) {
-            idDevice = bundle.getString("idDevice");
+            if (CommonActivity.isNullOrEmpty(idDevice)) {
+                idDevice = bundle.getString("idDevice");
+            }
         }
     }
 
