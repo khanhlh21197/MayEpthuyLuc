@@ -16,7 +16,7 @@ public class WarningService extends Service implements MediaPlayer.OnCompletionL
      *
      * @param name Used to name the worker thread, important only for debugging.
      */
-    MediaPlayer mediaPlayer;
+    public MediaPlayer mediaPlayer;
     private String fname = "warning.mp3";
 
     @Nullable

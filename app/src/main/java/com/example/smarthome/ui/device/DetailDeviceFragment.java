@@ -2,7 +2,6 @@ package com.example.smarthome.ui.device;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -34,7 +33,7 @@ import com.example.smarthome.common.CommonActivity;
 import com.example.smarthome.databinding.DetailDeviceFragmentBinding;
 import com.example.smarthome.serializer.ObjectSerializer;
 import com.example.smarthome.ui.device.model.Device;
-import com.example.smarthome.warning.WarningService;
+import com.example.smarthome.ui.main.TempMonitoringService;
 import com.google.firebase.database.GenericTypeIndicator;
 
 import java.io.IOException;
@@ -43,12 +42,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Objects;
 
-import static com.example.smarthome.ui.main.TempMonitoringService.v;
-import static com.example.smarthome.ui.main.TempMonitoringService.warningIntent;
-
 public class DetailDeviceFragment extends Fragment {
     private static final String SHARED_PREFS_HISTORY = "SHARED_PREFS_HISTORY";
     private static final String KEY_HISTORY = "HISTORY";
+    private Vibrator v;
 
     private DetailDeviceFragmentBinding mBinding;
     private DetailDeviceViewModel viewModel;
@@ -61,7 +58,8 @@ public class DetailDeviceFragment extends Fragment {
     private SharedPreferences prefs;
     private SharedPreferences.Editor editor;
 
-    public static DetailDeviceFragment newInstance(Device device, String idDevice) {
+    public static DetailDeviceFragment newInstance(Device device,
+                                                   String idDevice) {
 
         Bundle args = new Bundle();
         args.putSerializable("Device", device);
@@ -208,8 +206,8 @@ public class DetailDeviceFragment extends Fragment {
     }
 
     private void startWarning(String ng) {
-        playWarningSound();
-        vibrate();
+//        playWarningSound();
+//        vibrate();
         mBinding.txtHumanTemp.setAnimation(createFlashingAnimation());
         mBinding.btnWarning.setVisibility(View.VISIBLE);
         mBinding.btnWarning.setAnimation(createFlashingAnimation());
@@ -217,20 +215,21 @@ public class DetailDeviceFragment extends Fragment {
     }
 
     private void cancelWarning() {
-        if (warningIntent == null || v == null) {
-            return;
-        }
-        Objects.requireNonNull(getActivity()).stopService(warningIntent);
-        v.cancel();
+//        if (warningIntent == null || v == null) {
+//            return;
+//        }
+//        Objects.requireNonNull(getActivity()).stopService(warningIntent);
+//        v.cancel();
         mBinding.txtHumanTemp.clearAnimation();
         mBinding.btnWarning.clearAnimation();
         mBinding.btnWarning.setVisibility(View.GONE);
-        Toast.makeText(getActivity(), "Warning Cancelled", Toast.LENGTH_LONG).show();
-    }
-
-    private void playWarningSound() {
-        warningIntent = new Intent(getActivity(), WarningService.class);
-        Objects.requireNonNull(getActivity()).startService(warningIntent);
+//        Toast.makeText(getActivity(), "Warning Cancelled", Toast.LENGTH_LONG).show();
+//    }
+//
+//    private void playWarningSound() {
+//        warningIntent = new Intent(getActivity(), WarningService.class);
+//        Objects.requireNonNull(getActivity()).startService(warningIntent);
+        TempMonitoringService.stopMedia();
     }
 
     private void vibrate() {

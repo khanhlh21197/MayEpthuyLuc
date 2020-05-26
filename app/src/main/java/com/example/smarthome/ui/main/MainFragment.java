@@ -135,17 +135,25 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
         mainFragmentBinding.tvObserve.setText("Bật theo dõi nhiệt độ");
         mainFragmentBinding.switchObserve.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                tempMonitoringService = new Intent(getActivity(), TempMonitoringService.class);
-                tempMonitoringService.putExtra("idDevice", idDevice);
-                Objects.requireNonNull(getActivity()).startService(tempMonitoringService);
+                startService();
                 mainFragmentBinding.tvObserve.setText("Bật theo dõi nhiệt độ");
             } else {
-                if (!CommonActivity.isNullOrEmpty(tempMonitoringService)) {
-                    Objects.requireNonNull(getActivity()).stopService(tempMonitoringService);
-                }
+                stopService();
                 mainFragmentBinding.tvObserve.setText("Tắt theo dõi nhiệt độ");
             }
         });
+    }
+
+    public void startService() {
+        tempMonitoringService = new Intent(getActivity(), TempMonitoringService.class);
+        tempMonitoringService.putExtra("idDevice", idDevice);
+        Objects.requireNonNull(getActivity()).startService(tempMonitoringService);
+    }
+
+    public void stopService(){
+        if (!CommonActivity.isNullOrEmpty(tempMonitoringService)) {
+            Objects.requireNonNull(getActivity()).stopService(tempMonitoringService);
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -172,9 +180,7 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
                             mainFragmentBinding.tvObserve.setVisibility(View.GONE);
                             mainFragmentBinding.switchObserve.setVisibility(View.GONE);
                         }
-                        tempMonitoringService = new Intent(getActivity(), TempMonitoringService.class);
-                        tempMonitoringService.putExtra("idDevice", idDevice);
-                        Objects.requireNonNull(getActivity()).startService(tempMonitoringService);
+                        startService();
                     } catch (NullPointerException e) {
                         e.printStackTrace();
                     }
