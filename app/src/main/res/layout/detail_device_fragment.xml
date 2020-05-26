@@ -10,11 +10,9 @@
             type="com.example.smarthome.ui.device.model.Device" />
     </data>
 
-    <ScrollView
+    <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:animateLayoutChanges="true"
-        android:fillViewport="true">
+        android:layout_height="match_parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -26,12 +24,23 @@
                 android:id="@+id/txtDeviceName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:maxLines="1"
                 android:text="@{detail_device.toString()}"
                 android:textSize="@dimen/_18ssp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
                 tools:text="Tên thiết bị" />
+
+            <ImageView
+                android:id="@+id/imgEdit"
+                android:layout_width="@dimen/_18sdp"
+                android:layout_height="@dimen/_18sdp"
+                android:layout_marginStart="16dp"
+                android:src="@mipmap/ic_edit"
+                app:layout_constraintBottom_toBottomOf="@id/txtDeviceName"
+                app:layout_constraintStart_toEndOf="@id/txtDeviceName"
+                app:layout_constraintTop_toTopOf="@id/txtDeviceName" />
 
             <LinearLayout
                 android:id="@+id/lnTime"
@@ -53,14 +62,14 @@
                     android:textSize="@dimen/_24ssp"
                     tools:text="@tools:sample/date/ddmmyy" />
 
-                <TextClock
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:format24Hour="HH:mm:ss"
-                    android:gravity="center_vertical"
-                    android:textSize="@dimen/_24ssp"
-                    tools:targetApi="jelly_bean_mr1" />
+                <!--            <TextClock-->
+                <!--                android:layout_width="0dp"-->
+                <!--                android:layout_height="wrap_content"-->
+                <!--                android:layout_weight="1"-->
+                <!--                android:format24Hour="HH:mm:ss"-->
+                <!--                android:gravity="center_vertical"-->
+                <!--                android:textSize="@dimen/_24ssp"-->
+                <!--                tools:targetApi="jelly_bean_mr1" />-->
 
             </LinearLayout>
 
@@ -81,6 +90,7 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:orientation="vertical"
+                    android:visibility="gone"
                     android:weightSum="2">
 
                     <TextView
@@ -108,7 +118,8 @@
                     android:layout_width="0dp"
                     android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:visibility="gone">
 
                     <TextView
                         android:layout_width="match_parent"
@@ -147,7 +158,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
-                    android:text="Nhiệt độ người"
+                    android:padding="@dimen/_4sdp"
+                    android:text="Nhiệt độ thiết bị"
                     android:textAllCaps="true"
                     android:textSize="@dimen/_18ssp" />
 
@@ -166,6 +178,7 @@
                 android:id="@+id/lnWarning"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_8sdp"
                 android:background="@drawable/bg_textview"
                 android:orientation="vertical"
                 app:layout_constraintLeft_toLeftOf="parent"
@@ -175,6 +188,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:padding="@dimen/_4sdp"
                     android:text="Cài ngưỡng cảnh báo"
                     android:textAllCaps="true"
                     android:textSize="@dimen/_18ssp" />
@@ -234,6 +248,7 @@
                 android:id="@+id/lnInfo"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_margin="@dimen/_8sdp"
                 android:orientation="horizontal"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
@@ -251,7 +266,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Số người sốt:" />
+                    android:text="Số người sốt: 0" />
 
             </LinearLayout>
 
@@ -269,8 +284,9 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/listHistory"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:nestedScrollingEnabled="true"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:nestedScrollingEnabled="false"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/btnWarning"
@@ -278,8 +294,18 @@
                 tools:listitem="@layout/item_history"
                 tools:targetApi="lollipop" />
 
+            <Button
+                android:id="@+id/btnDeleteHistory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Xóa lịch sử"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/listHistory" />
+
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-    </ScrollView>
+    </androidx.core.widget.NestedScrollView>
 
 </layout>

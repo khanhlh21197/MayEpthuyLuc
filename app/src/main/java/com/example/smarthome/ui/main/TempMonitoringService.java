@@ -7,11 +7,15 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.IBinder;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.util.Log;
+import android.widget.RemoteViews;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.IdRes;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.lifecycle.LifecycleService;
@@ -21,13 +25,11 @@ import com.example.smarthome.R;
 import com.example.smarthome.common.CommonActivity;
 import com.example.smarthome.ui.device.model.Device;
 import com.example.smarthome.utils.FireBaseCallBack;
-import com.example.smarthome.utils.StringUtils;
+import com.example.smarthome.warning.NotificationIntentService;
 import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.GenericTypeIndicator;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Objects;
@@ -35,10 +37,16 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class TempMonitoringService extends LifecycleService {
+    public static boolean isRunning = false;
+    public static final String EXTRA_BUTTON_CLICKED = "EXTRA_BUTTON_CLICKED";
+    private static final String ACTION_NOTIFICATION_BUTTON_CLICK = "12345";
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private DatabaseReference deviceRef = database.getReference("devices");
     private Timer timer;
     public int counter = 0;
+    public static Vibrator v;
+    public static Intent warningIntent;
+    private static MediaPlayer mediaPlayer;
 
     public TempMonitoringService() {
     }
@@ -79,18 +87,23 @@ public class TempMonitoringService extends LifecycleService {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
+
+        mediaPlayer = MediaPlayer.create(this, R.raw.warning);
+        mediaPlayer.setOnCompletionListener(mp -> stopSelf());
+
         if (!CommonActivity.isNullOrEmpty(intent)
                 && !CommonActivity.isNullOrEmpty(intent.getExtras())
                 && !CommonActivity.isNullOrEmpty(intent.getExtras().getString("idDevice"))) {
+            isRunning = true;
             String idDevice = Objects.requireNonNull(intent.getExtras()).getString("idDevice");
             Log.v("TempMonitoringService", "onStartCommand");
             startTimer();
             MainViewModel viewModel = new MainViewModel();
-            if (!CommonActivity.isNullOrEmpty(idDevice)){
+            if (!CommonActivity.isNullOrEmpty(idDevice)) {
                 viewModel.getAllDevices().observe(Objects.requireNonNull(this), dataSnapshot -> {
                     getData(dataSnapshot, devices -> {
                         if (devices != null) {
-                            for (int i= 0; i< devices.size(); i++) {
+                            for (int i = 0; i < devices.size(); i++) {
                                 Device device = devices.get(i);
                                 if (idDevice.contains(device.getId())) {
                                     if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
@@ -102,31 +115,20 @@ public class TempMonitoringService extends LifecycleService {
                     });
                 });
             }
-//            viewModel.getDevicesOfUser(idDevice).observe(this, dataSnapshot -> {
-//                GenericTypeIndicator<ArrayList<Device>> t = new GenericTypeIndicator<ArrayList<Device>>() {
-//                };
-//                ArrayList<Device> devices = dataSnapshot.getValue(t);
-//                if (devices != null) {
-//                    for (int i = 0; i < devices.size(); i++) {
-//                        try {
-//                            Device device = devices.get(i);
-//                            if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
-//                                createNotification(device.getNO(), device.getId(), i);
-//                            }
-//                        } catch (NumberFormatException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                }
-//            });
         }
         return START_STICKY;
     }
 
     @Override
     public void onDestroy() {
+        stopMedia();
+        if (v != null && v.hasVibrator()) {
+            v.cancel();
+        }
+        mediaPlayer.release();
         Log.v("TempMonitoringService", "onDestroy");
         super.onDestroy();
+        isRunning = false;
 
         stoptimertask();
 //auto restart service
@@ -134,6 +136,13 @@ public class TempMonitoringService extends LifecycleService {
 //        broadcastIntent.setAction("restartservice");
 //        broadcastIntent.setClass(this, Restarter.class);
 //        this.sendBroadcast(broadcastIntent);
+    }
+
+    public static void stopMedia() {
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.stop();
+            Log.d("mediaPlayer", "stopped");
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -145,24 +154,35 @@ public class TempMonitoringService extends LifecycleService {
     }
 
     private void createNotification(String ng, String idDevice, int idNoti) {
+        RemoteViews notificationLayout =
+                new RemoteViews(getPackageName(), R.layout.notification_monitoring);
+
+        Intent stopWarning = new Intent(this, NotificationIntentService.class);
+        stopWarning.setAction("stopWarning");
+
+        notificationLayout.setOnClickPendingIntent(R.id.removeWarning,
+                PendingIntent.getService(this, 0, stopWarning, PendingIntent.FLAG_UPDATE_CURRENT));
+
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(getApplicationContext(), "notify_001");
         Intent ii = new Intent(getApplicationContext(), MainActivity.class);
         ii.putExtra("menuFragment", "DetailDeviceFragment");
         ii.putExtra("idDevice", idDevice);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, ii, 0);
-
-        NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
-        bigText.bigText("Nhiệt độ đo được: " + ng + " trên thiết bị: " + idDevice);
-        bigText.setBigContentTitle("Nhiệt độ vượt ngưỡng !");
-        bigText.setSummaryText("Cảnh báo");
-
-        mBuilder.setContentIntent(pendingIntent);
+//        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, ii, 0);
+//
+//        NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
+//        bigText.bigText("Nhiệt độ đo được: " + ng + " trên thiết bị: " + idDevice);
+//        bigText.setBigContentTitle("Nhiệt độ vượt ngưỡng !");
+//        bigText.setSummaryText("Cảnh báo");
+//
+//        mBuilder.setContentIntent(pendingIntent);
         mBuilder.setSmallIcon(R.drawable.ic_warning_red);
-        mBuilder.setContentTitle(getString(R.string.app_name));
-        mBuilder.setContentText("Nhiệt độ vượt ngưỡng !");
+        mBuilder.setCustomContentView(notificationLayout);
+        mBuilder.setVisibility(NotificationCompat.VISIBILITY_PUBLIC);
+//        mBuilder.setContentTitle(getString(R.string.app_name));
+//        mBuilder.setContentText("Nhiệt độ vượt ngưỡng !");
         mBuilder.setPriority(Notification.PRIORITY_MAX);
-        mBuilder.setStyle(bigText);
+//        mBuilder.setStyle(bigText);
 
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -181,8 +201,31 @@ public class TempMonitoringService extends LifecycleService {
         if (mNotificationManager != null) {
             mNotificationManager.notify(idNoti, mBuilder.build());
         }
+        playWarningSound();
+        vibrate();
     }
 
+    private void playWarningSound() {
+        if (!mediaPlayer.isPlaying()) {
+            mediaPlayer.start();
+            Log.d("mediaPlayer", "started");
+        }
+    }
+
+    private void vibrate() {
+        if (v == null || !v.hasVibrator()) {
+            v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+            if (!CommonActivity.isNullOrEmpty(v)) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    v.vibrate(VibrationEffect.createOneShot(500,
+                            VibrationEffect.DEFAULT_AMPLITUDE));
+                } else {
+                    //deprecated in API 26
+                    v.vibrate(3000);
+                }
+            }
+        }
+    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     private void startMyOwnForeground() {
@@ -201,9 +244,6 @@ public class TempMonitoringService extends LifecycleService {
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID);
 
-//        NotificationCompat.BigTextStyle bigText = new NotificationCompat.BigTextStyle();
-//        bigText.bigText("Đang theo dõi nhiệt độ");
-
         Notification notification = notificationBuilder.setOngoing(true)
                 .setSmallIcon(R.drawable.ic_warning_red)
                 .setContentTitle(getString(R.string.app_name))
@@ -213,5 +253,11 @@ public class TempMonitoringService extends LifecycleService {
 //                .setStyle(bigText)
                 .build();
         startForeground(9, notification);
+    }
+
+    private PendingIntent onButtonNotificationClick(@IdRes int id) {
+        Intent intent = new Intent();
+        intent.putExtra(EXTRA_BUTTON_CLICKED, id);
+        return PendingIntent.getBroadcast(this, id, intent, 0);
     }
 }

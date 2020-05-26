@@ -43,10 +43,8 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        @SuppressLint("SimpleDateFormat") String timeStamp
-                = new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
         Device device = history.get(position);
-        holder.tvTime.setText(device.getTime() + " " + timeStamp);
+        holder.tvTime.setText(device.getTime());
         holder.tvTemperature.setText("Nhiệt độ : " + device.getNO() + " độ C");
     }
 

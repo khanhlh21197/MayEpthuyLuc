@@ -15,11 +15,14 @@ import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
+import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.MutableLiveData;
@@ -35,8 +38,13 @@ import com.example.smarthome.warning.WarningService;
 import com.google.firebase.database.GenericTypeIndicator;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Objects;
+
+import static com.example.smarthome.ui.main.TempMonitoringService.v;
+import static com.example.smarthome.ui.main.TempMonitoringService.warningIntent;
 
 public class DetailDeviceFragment extends Fragment {
     private static final String SHARED_PREFS_HISTORY = "SHARED_PREFS_HISTORY";
@@ -47,11 +55,11 @@ public class DetailDeviceFragment extends Fragment {
     private Device device;
     private MutableLiveData<Device> liveData = new MutableLiveData<>();
     private HistoryAdapter historyAdapter;
-    private Intent warningIntent;
-    private Vibrator v;
     private int indexOfDevice = 0;
     private int highTemp = 0;
     private ArrayList<Device> history = new ArrayList<>();
+    private SharedPreferences prefs;
+    private SharedPreferences.Editor editor;
 
     public static DetailDeviceFragment newInstance(Device device, String idDevice) {
 
@@ -74,9 +82,17 @@ public class DetailDeviceFragment extends Fragment {
                         container,
                         false);
         unit();
-        initAdapter();
         getHistory();
+        initAdapter();
+        editDeviceName();
         return mBinding.getRoot();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void editDeviceName() {
+        mBinding.imgEdit.setOnClickListener(v -> {
+            displayAlertDialog();
+        });
     }
 
     private void getHistory() {
@@ -99,6 +115,7 @@ public class DetailDeviceFragment extends Fragment {
         mBinding.listHistory.setAdapter(historyAdapter);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void getBundleData() {
         Bundle bundle = getArguments();
         if (bundle != null) {
@@ -141,6 +158,14 @@ public class DetailDeviceFragment extends Fragment {
             }
         });
 
+        mBinding.btnDeleteHistory.setOnClickListener(v -> {
+            if (!CommonActivity.isNullOrEmpty(editor)) {
+                editor.clear();
+                editor.commit();
+                historyAdapter.notifyDataSetChanged();
+            }
+        });
+
 //        viewModel.onTemperatureChange(indexOfDevice).observe(Objects.requireNonNull(getActivity()), dataSnapshot -> {
 //            String temp = dataSnapshot.getValue(String.class);
 //            if (temp != null) {
@@ -151,15 +176,20 @@ public class DetailDeviceFragment extends Fragment {
 //        });
     }
 
-    @SuppressLint("NewApi")
+    @SuppressLint({"NewApi", "SetTextI18n"})
     private void observeTemperature() {
         liveData.observe(Objects.requireNonNull(getActivity()), device -> {
             mBinding.setDetailDevice(device);
             try {
                 if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
-                    history.add(device);
+                    @SuppressLint("SimpleDateFormat") String timeStamp
+                            = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(Calendar.getInstance().getTime());
+                    device.setTime(timeStamp);
+                    history.add(0, device);
+                    mBinding.tvHighTemp.setText("Số người sốt: " + history.size());
                     saveHistory(history);
-                    historyAdapter.setData(history);
+                    historyAdapter.notifyItemInserted(0);
+                    mBinding.listHistory.smoothScrollToPosition(0);
 //                    highTemp++;
 //                    viewModel.setTotal(indexOfDevice, String.valueOf(highTemp));
                     startWarning(device.getNG());
@@ -187,8 +217,11 @@ public class DetailDeviceFragment extends Fragment {
     }
 
     private void cancelWarning() {
+        if (warningIntent == null || v == null) {
+            return;
+        }
         Objects.requireNonNull(getActivity()).stopService(warningIntent);
-        this.v.cancel();
+        v.cancel();
         mBinding.txtHumanTemp.clearAnimation();
         mBinding.btnWarning.clearAnimation();
         mBinding.btnWarning.setVisibility(View.GONE);
@@ -201,6 +234,9 @@ public class DetailDeviceFragment extends Fragment {
     }
 
     private void vibrate() {
+        if (v != null && v.hasVibrator()) {
+            return;
+        }
         if (!CommonActivity.isNullOrEmpty(getActivity())) {
             v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
             if (!CommonActivity.isNullOrEmpty(v)) {
@@ -240,13 +276,44 @@ public class DetailDeviceFragment extends Fragment {
 
     private void saveHistory(ArrayList<Device> history) {
         // save the task list to preference
-        SharedPreferences prefs = Objects.requireNonNull(getActivity()).getSharedPreferences(SHARED_PREFS_HISTORY, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
+        prefs = Objects.requireNonNull(getActivity()).getSharedPreferences(SHARED_PREFS_HISTORY, Context.MODE_PRIVATE);
+        editor = prefs.edit();
         try {
             editor.putString(KEY_HISTORY, ObjectSerializer.serialize(history));
         } catch (IOException e) {
             e.printStackTrace();
         }
         editor.apply();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void displayAlertDialog() {
+        LayoutInflater inflater = getLayoutInflater();
+        @SuppressLint("InflateParams") View alertLayout = inflater.inflate(R.layout.dialog_edit_device_name, null);
+        final EditText edtDeviceName = alertLayout.findViewById(R.id.edtDeviceName);
+        final TextView txtWarning = alertLayout.findViewById(R.id.txtWarning);
+        if (!CommonActivity.isNullOrEmpty(device.getName())) {
+            edtDeviceName.setText(device.getName());
+        } else {
+            edtDeviceName.setText(device.getId());
+        }
+
+        AlertDialog.Builder alert = new AlertDialog.Builder(Objects.requireNonNull(getActivity()));
+        alert.setTitle("Đổi tên thiết bị");
+        alert.setView(alertLayout);
+        alert.setCancelable(false);
+        alert.setNegativeButton("Hủy", (dialog, which) -> Toast.makeText(getActivity(), "Hủy", Toast.LENGTH_SHORT).show());
+
+        alert.setPositiveButton("Đồng ý", (dialog, which) -> {
+            if (!CommonActivity.isNullOrEmpty(edtDeviceName.getText().toString())) {
+                device.setName(edtDeviceName.getText().toString());
+                viewModel.setName(indexOfDevice, device.getName());
+                txtWarning.setVisibility(View.GONE);
+            } else {
+                txtWarning.setVisibility(View.VISIBLE);
+            }
+        });
+        AlertDialog dialog = alert.create();
+        dialog.show();
     }
 }

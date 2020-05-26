@@ -1,6 +1,5 @@
 package com.example.smarthome.warning;
 
-import android.app.IntentService;
 import android.app.Service;
 import android.content.Intent;
 import android.media.MediaPlayer;
@@ -36,7 +35,7 @@ public class WarningService extends Service implements MediaPlayer.OnCompletionL
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if (!mediaPlayer.isPlaying()){
+        if (!mediaPlayer.isPlaying()) {
             mediaPlayer.start();
             Log.d("mediaPlayer", "started");
         }
@@ -45,7 +44,7 @@ public class WarningService extends Service implements MediaPlayer.OnCompletionL
 
     @Override
     public void onDestroy() {
-        if (mediaPlayer.isPlaying()){
+        if (mediaPlayer.isPlaying()) {
             mediaPlayer.stop();
             Log.d("mediaPlayer", "stopped");
         }

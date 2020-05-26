@@ -9,6 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -20,6 +21,7 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.GridLayoutManager;
 
+import com.example.smarthome.ItemDecorationAlbumColumns;
 import com.example.smarthome.R;
 import com.example.smarthome.common.BaseBindingAdapter;
 import com.example.smarthome.common.CommonActivity;
@@ -30,6 +32,9 @@ import com.example.smarthome.ui.device.DetailDeviceViewModel;
 import com.example.smarthome.ui.device.model.Device;
 import com.example.smarthome.ui.login.LoginViewModel;
 import com.example.smarthome.utils.FireBaseCallBack;
+import com.example.smarthome.utils.Utility;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.GenericTypeIndicator;
 import com.google.zxing.integration.android.IntentIntegrator;
@@ -72,7 +77,12 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
         mainFragmentBinding = DataBindingUtil.inflate(inflater, R.layout.main_fragment, container, false);
         unit();
         onFabClicked();
+        editDeviceName();
         return mainFragmentBinding.getRoot();
+    }
+
+    private void editDeviceName() {
+
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -104,8 +114,13 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
                 ViewModelProviders.of(Objects.requireNonNull(getActivity())).get(MainViewModel.class);
         mainFragmentBinding.setLifecycleOwner(this);
         mainFragmentBinding.listDevice.setAdapter(adapter);
+        int mNoOfColumns = Utility.calculateNoOfColumns(Objects.requireNonNull(getContext()), 180);
         mainFragmentBinding.listDevice
-                .setLayoutManager(new GridLayoutManager(getActivity(), 3));
+                .setLayoutManager(new GridLayoutManager(getActivity(), mNoOfColumns));
+
+        mainFragmentBinding.listDevice.addItemDecoration(new ItemDecorationAlbumColumns(
+                getResources().getDimensionPixelSize(R.dimen.photos_list_spacing),
+                mNoOfColumns));
 
         // TODO: Use the ViewModel
         // Read from the database
@@ -144,21 +159,25 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
                             devicesOfUser.add(device);
                         }
                     }
-                    if (!CommonActivity.isNullOrEmpty(devicesOfUser)) {
-                        mainFragmentBinding.listDevice.setVisibility(View.VISIBLE);
-                        mainFragmentBinding.tvEmpty.setVisibility(View.GONE);
-                        mainFragmentBinding.tvObserve.setVisibility(View.VISIBLE);
-                        mainFragmentBinding.switchObserve.setVisibility(View.VISIBLE);
-                        adapter.setData(devicesOfUser);
-                    } else {
-                        mainFragmentBinding.listDevice.setVisibility(View.GONE);
-                        mainFragmentBinding.tvEmpty.setVisibility(View.VISIBLE);
-                        mainFragmentBinding.tvObserve.setVisibility(View.GONE);
-                        mainFragmentBinding.switchObserve.setVisibility(View.GONE);
+                    try {
+                        if (!CommonActivity.isNullOrEmpty(devicesOfUser)) {
+                            mainFragmentBinding.listDevice.setVisibility(View.VISIBLE);
+                            mainFragmentBinding.tvEmpty.setVisibility(View.GONE);
+                            mainFragmentBinding.tvObserve.setVisibility(View.VISIBLE);
+                            mainFragmentBinding.switchObserve.setVisibility(View.VISIBLE);
+                            adapter.setData(devicesOfUser);
+                        } else {
+                            mainFragmentBinding.listDevice.setVisibility(View.GONE);
+                            mainFragmentBinding.tvEmpty.setVisibility(View.VISIBLE);
+                            mainFragmentBinding.tvObserve.setVisibility(View.GONE);
+                            mainFragmentBinding.switchObserve.setVisibility(View.GONE);
+                        }
+                        tempMonitoringService = new Intent(getActivity(), TempMonitoringService.class);
+                        tempMonitoringService.putExtra("idDevice", idDevice);
+                        Objects.requireNonNull(getActivity()).startService(tempMonitoringService);
+                    } catch (NullPointerException e) {
+                        e.printStackTrace();
                     }
-                    tempMonitoringService = new Intent(getActivity(), TempMonitoringService.class);
-                    tempMonitoringService.putExtra("idDevice", idDevice);
-                    Objects.requireNonNull(getActivity()).startService(tempMonitoringService);
                 }
             });
         });
@@ -202,8 +221,12 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
         alert.setPositiveButton("Đồng ý", (dialog, which) -> {
             if (txtInputDevice.getText() != null) {
                 idDevice += txtInputDevice.getText().toString();
-                loginViewModel.insertDevice(idDevice);
-                observeAllDevice();
+                loginViewModel.insertDevice(idDevice, new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        observeAllDevice();
+                    }
+                });
             } else {
                 Toast.makeText(getActivity(), "Vui lòng nhập tên thiết bị", Toast.LENGTH_SHORT).show();
             }
@@ -221,8 +244,8 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
-    public void onItemEmptyClick(Device item) {
-        addDevice();
+    public void onBtnEditClick(Device item, int position) {
+        displayAlertDialog(item, position);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -241,8 +264,12 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
                 v -> {
                     if (idDevice.contains(item.getId())) {
                         idDevice = idDevice.replaceAll(item.getId(), "");
-                        loginViewModel.insertDevice(idDevice);
-                        observeAllDevice();
+                        loginViewModel.insertDevice(idDevice, new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                observeAllDevice();
+                            }
+                        });
                     }
                 },
                 null)).show();
@@ -263,5 +290,37 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
                 }
             }
         }
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    public void displayAlertDialog(Device device, int indexOfDevice) {
+        DetailDeviceViewModel viewModel = new DetailDeviceViewModel();
+        LayoutInflater inflater = getLayoutInflater();
+        @SuppressLint("InflateParams") View alertLayout = inflater.inflate(R.layout.dialog_edit_device_name, null);
+        final EditText edtDeviceName = alertLayout.findViewById(R.id.edtDeviceName);
+        final TextView txtWarning = alertLayout.findViewById(R.id.txtWarning);
+        if (!CommonActivity.isNullOrEmpty(device.getName())) {
+            edtDeviceName.setText(device.getName());
+        } else {
+            edtDeviceName.setText(device.getId());
+        }
+
+        AlertDialog.Builder alert = new AlertDialog.Builder(Objects.requireNonNull(getActivity()));
+        alert.setTitle("Đổi tên thiết bị");
+        alert.setView(alertLayout);
+        alert.setCancelable(false);
+        alert.setNegativeButton("Hủy", (dialog, which) -> Toast.makeText(getActivity(), "Hủy", Toast.LENGTH_SHORT).show());
+
+        alert.setPositiveButton("Đồng ý", (dialog, which) -> {
+            if (!CommonActivity.isNullOrEmpty(edtDeviceName.getText().toString())) {
+                device.setName(edtDeviceName.getText().toString());
+                viewModel.setName(indexOfDevice, device.getName());
+                txtWarning.setVisibility(View.GONE);
+            } else {
+                txtWarning.setVisibility(View.VISIBLE);
+            }
+        });
+        AlertDialog dialog = alert.create();
+        dialog.show();
     }
 }

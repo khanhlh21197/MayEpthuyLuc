@@ -10,83 +10,95 @@
             type="com.example.smarthome.ui.device.model.Device" />
     </data>
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:padding="8dp"
-        tools:targetApi="lollipop">
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="180dp"
+        android:layout_height="180dp"
+        android:layout_margin="8dp"
+        android:background="@drawable/bg_textview"
+        android:elevation="8dp"
+        android:padding="4dp"
+        tools:ignore="UnusedAttribute">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/llDeviceName"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_textview"
-            android:elevation="8dp"
-            android:padding="8dp">
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
             <TextView
                 android:id="@+id/txtDeviceName"
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_weight="8"
                 android:gravity="center"
-                android:text="@{item_device.id}"
+                android:maxLines="1"
+                android:text="@{item_device.toString()}"
                 android:textSize="@dimen/_14ssp"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
                 tools:text="Tên thiết bị" />
 
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/imgDevice"
-                android:layout_width="@dimen/_64sdp"
-                android:layout_height="@dimen/_64sdp"
-                android:layout_marginTop="@dimen/_8sdp"
-                android:src="@drawable/ic_temp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintLeft_toRightOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/txtDeviceName" />
+            <ImageView
+                android:id="@+id/imgEdit"
+                android:layout_width="@dimen/_18sdp"
+                android:layout_height="@dimen/_18sdp"
+                android:layout_marginStart="4dp"
+                android:layout_weight="2"
+                android:src="@mipmap/ic_edit" />
 
-            <androidx.appcompat.widget.AppCompatImageView
-                android:id="@+id/imgWarning"
-                android:layout_width="@dimen/_64sdp"
-                android:layout_height="@dimen/_64sdp"
-                android:layout_marginTop="@dimen/_8sdp"
-                android:src="@drawable/ic_warning_red"
-                android:visibility="gone"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintLeft_toRightOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/txtDeviceName" />
+        </LinearLayout>
 
-            <TextView
-                android:id="@+id/txtActive"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_8sdp"
-                android:gravity="center"
-                android:textColor="@color/colorPrimary"
-                android:textSize="@dimen/_12ssp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toLeftOf="@id/txtBattery"
-                app:layout_constraintTop_toBottomOf="@id/imgDevice"
-                tools:text="Đang hoạt động" />
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/imgDevice"
+            android:layout_width="@dimen/_64sdp"
+            android:layout_height="@dimen/_64sdp"
+            android:layout_marginTop="@dimen/_8sdp"
+            android:src="@drawable/ic_temp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintLeft_toRightOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/llDeviceName" />
 
-            <TextView
-                android:id="@+id/txtBattery"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="@dimen/_8sdp"
-                android:textSize="@dimen/_12ssp"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintLeft_toRightOf="@id/txtActive"
-                app:layout_constraintRight_toRightOf="parent"
-                tools:text="% pin" />
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/imgWarning"
+            android:layout_width="@dimen/_64sdp"
+            android:layout_height="@dimen/_64sdp"
+            android:layout_marginTop="@dimen/_8sdp"
+            android:src="@drawable/ic_warning_red"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintLeft_toRightOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/llDeviceName" />
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+        <TextView
+            android:id="@+id/txtActive"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_8sdp"
+            android:gravity="center"
+            android:textColor="@color/colorPrimary"
+            android:textSize="@dimen/_12ssp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@id/txtBattery"
+            app:layout_constraintTop_toBottomOf="@id/imgDevice"
+            tools:text="Đang hoạt động" />
 
-    </LinearLayout>
+        <TextView
+            android:id="@+id/txtBattery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/_8sdp"
+            android:textSize="@dimen/_12ssp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@id/txtActive"
+            app:layout_constraintRight_toRightOf="parent"
+            tools:text="% pin" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </layout>

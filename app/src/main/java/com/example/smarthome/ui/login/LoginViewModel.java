@@ -1,7 +1,5 @@
 package com.example.smarthome.ui.login;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.View;
 
@@ -12,7 +10,7 @@ import androidx.lifecycle.ViewModel;
 import com.example.smarthome.common.CommonActivity;
 import com.example.smarthome.utils.FireBaseCallBack;
 import com.example.smarthome.utils.Result;
-import com.google.firebase.auth.FirebaseAuth;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -29,7 +27,6 @@ public class LoginViewModel extends ViewModel {
     public MutableLiveData<String> Password = new MutableLiveData<>();
     private User user = null;
     private String userID = "";
-
     private ArrayList<User> users = new ArrayList<>();
     private Result<User> result;
 
@@ -38,10 +35,13 @@ public class LoginViewModel extends ViewModel {
     }
 
     ArrayList<User> getAllUsersLiveData() {
-        getData(item -> {
+        getData((DataSnapshot item) -> {
             users.clear();
             for (DataSnapshot d : item.getChildren()) {
                 User user = d.getValue(User.class);
+                if (user != null) {
+                    Log.d("User: ", user.toString());
+                }
                 if (user != null) {
                     user.setUid(d.getKey());
                 }
@@ -52,7 +52,7 @@ public class LoginViewModel extends ViewModel {
     }
 
     private void getData(FireBaseCallBack<DataSnapshot> callBack) {
-        userRef.addValueEventListener(new ValueEventListener() {
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 callBack.afterDataChanged(dataSnapshot);
@@ -60,14 +60,14 @@ public class LoginViewModel extends ViewModel {
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                Log.d("getData", "onCancelled");
             }
         });
     }
 
     public void onClick(View view) {
         User inputUser = new User(Email.getValue(), Password.getValue());
-        if (CommonActivity.isNullOrEmpty(Email.getValue()) || CommonActivity.isNullOrEmpty(Password.getValue())){
+        if (CommonActivity.isNullOrEmpty(Email.getValue()) || CommonActivity.isNullOrEmpty(Password.getValue())) {
             result.onFailure("Vui lòng điền đủ thông tin đăng nhập!");
             return;
         }
@@ -99,11 +99,13 @@ public class LoginViewModel extends ViewModel {
         return user;
     }
 
-    public void insertDevice(String idDevice){
+    public void insertDevice(String idDevice, OnCompleteListener<Void> onCompleteListener) {
         if (userID != null) {
-            userRef.child(userID).child("idDevice").setValue(idDevice);
+            userRef.child(userID).child("idDevice")
+                    .setValue(idDevice)
+                    .addOnCompleteListener(onCompleteListener);
             Log.d(userID, "insert success");
-        }else{
+        } else {
             Log.d("userID", "insert fail");
         }
     }

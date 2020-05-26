@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--Integer Value that number of column in RecyclerView-->
+    <integer name="photo_list_preview_columns">3</integer>
+
+    <!-- inter spacing between RecyclerView's Item-->
+    <dimen name="photos_list_spacing">10dp</dimen>
+</resources>

@@ -61,6 +61,11 @@ public class DetailDeviceViewModel extends ViewModel {
     void setNG(int indexOfDevice, String ng){
         deviceRef.child(String.valueOf(indexOfDevice)).child("NG").setValue(ng);
     }
+
+    public void setName(int indexOfDevice, String name){
+        deviceRef.child(String.valueOf(indexOfDevice)).child("name").setValue(name);
+    }
+
     void setTotal(int indexOfDevice, String total){
         deviceRef.child(String.valueOf(indexOfDevice)).child("total").setValue(total);
     }

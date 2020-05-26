@@ -87,13 +87,16 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
         if (item instanceof Device) {
             Device device = (Device) item;
             try {
+                holder.itemView.findViewById(R.id.imgEdit).setOnClickListener(v -> {
+                    onItemClickListener.onBtnEditClick(item, position);
+                });
                 if (!CommonActivity.isNullOrEmpty(device.getNO())
                         && !CommonActivity.isNullOrEmpty(device.getNG())) {
                     if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
                         holder.itemView.findViewById(R.id.imgWarning).setVisibility(View.VISIBLE);
                         holder.itemView.findViewById(R.id.imgWarning)
                                 .setAnimation(DetailDeviceFragment.createFlashingAnimation());
-                        createNotification(device.getNO(), device.getId());
+//                        createNotification(device.getNO(), device.getId());
                     } else {
                         holder.itemView.findViewById(R.id.imgWarning).setVisibility(View.GONE);
                     }
@@ -177,7 +180,7 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
     public interface OnItemClickListener<T> {
         void onItemClick(T item);
 
-        void onItemEmptyClick(T item);
+        void onBtnEditClick(T item, int position);
 
         void onItemLongClick(T item);
     }
