@@ -132,26 +132,28 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
 
     private void onSwitchObserveChange() {
         mainFragmentBinding.switchObserve.setChecked(true);
-        mainFragmentBinding.tvObserve.setText("Bật theo dõi nhiệt độ");
+        mainFragmentBinding.tvObserve.setText(getString(R.string.turn_on_monitoring));
         mainFragmentBinding.switchObserve.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
                 startService();
-                mainFragmentBinding.tvObserve.setText("Bật theo dõi nhiệt độ");
+                mainFragmentBinding.tvObserve.setText(getString(R.string.turn_on_monitoring));
             } else {
                 stopService();
-                mainFragmentBinding.tvObserve.setText("Tắt theo dõi nhiệt độ");
+                mainFragmentBinding.tvObserve.setText(getString(R.string.turn_off_monitoring));
             }
         });
     }
 
     public void startService() {
-        tempMonitoringService = new Intent(getActivity(), TempMonitoringService.class);
-        tempMonitoringService.putExtra("idDevice", idDevice);
-        Objects.requireNonNull(getActivity()).startService(tempMonitoringService);
+        if (!TempMonitoringService.isRunning) {
+            tempMonitoringService = new Intent(getActivity(), TempMonitoringService.class);
+            tempMonitoringService.putExtra("idDevice", idDevice);
+            Objects.requireNonNull(getActivity()).startService(tempMonitoringService);
+        }
     }
 
-    public void stopService(){
-        if (!CommonActivity.isNullOrEmpty(tempMonitoringService)) {
+    public void stopService() {
+        if (!CommonActivity.isNullOrEmpty(tempMonitoringService) && TempMonitoringService.isRunning) {
             Objects.requireNonNull(getActivity()).stopService(tempMonitoringService);
         }
     }
@@ -221,10 +223,10 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
             startActivityForResult(scanIntent, 1);
         });
 
-        alert.setNegativeButton("Hủy", (dialog, which)
+        alert.setNegativeButton(getString(R.string.cancel), (dialog, which)
                 -> Toast.makeText(getActivity(), "Cancel clicked", Toast.LENGTH_SHORT).show());
 
-        alert.setPositiveButton("Đồng ý", (dialog, which) -> {
+        alert.setPositiveButton(getString(R.string.ok), (dialog, which) -> {
             if (txtInputDevice.getText() != null) {
                 idDevice += txtInputDevice.getText().toString();
                 loginViewModel.insertDevice(idDevice, new OnCompleteListener<Void>() {
@@ -234,7 +236,7 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
                     }
                 });
             } else {
-                Toast.makeText(getActivity(), "Vui lòng nhập tên thiết bị", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getActivity(), getString(R.string.input_device_name), Toast.LENGTH_SHORT).show();
             }
         });
         AlertDialog dialog = alert.create();
@@ -265,8 +267,8 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
         Objects.requireNonNull(CommonActivity.createDialog(getActivity(),
                 "Bạn có muốn xóa thiết bị " + item.getId() + "?",
                 getString(R.string.app_name),
-                "Xóa",
-                "Hủy",
+                getString(R.string.delete),
+                getString(R.string.cancel),
                 v -> {
                     if (idDevice.contains(item.getId())) {
                         idDevice = idDevice.replaceAll(item.getId(), "");
@@ -312,12 +314,12 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
         }
 
         AlertDialog.Builder alert = new AlertDialog.Builder(Objects.requireNonNull(getActivity()));
-        alert.setTitle("Đổi tên thiết bị");
+        alert.setTitle(getString(R.string.change_device_name));
         alert.setView(alertLayout);
         alert.setCancelable(false);
-        alert.setNegativeButton("Hủy", (dialog, which) -> Toast.makeText(getActivity(), "Hủy", Toast.LENGTH_SHORT).show());
+        alert.setNegativeButton(getString(R.string.cancel), (dialog, which) -> Toast.makeText(getActivity(), getString(R.string.cancel), Toast.LENGTH_SHORT).show());
 
-        alert.setPositiveButton("Đồng ý", (dialog, which) -> {
+        alert.setPositiveButton(getString(R.string.ok), (dialog, which) -> {
             if (!CommonActivity.isNullOrEmpty(edtDeviceName.getText().toString())) {
                 device.setName(edtDeviceName.getText().toString());
                 viewModel.setName(indexOfDevice, device.getName());

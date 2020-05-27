@@ -30,6 +30,7 @@ public class SignUpFragment extends Fragment implements Result<User> {
     private SignUpFragmentBinding mBinding;
     private SignUpViewModel viewModel;
     private FirebaseAuth mAuth;
+    private User currentUser = null;
 
     public static SignUpFragment newInstance() {
 
@@ -46,11 +47,15 @@ public class SignUpFragment extends Fragment implements Result<User> {
         mBinding = DataBindingUtil.inflate(inflater, R.layout.sign_up_fragment, container, false);
         viewModel = ViewModelProviders.of(Objects.requireNonNull(getActivity())).get(SignUpViewModel.class);
         mBinding.setLifecycleOwner(this);
-        viewModel.setResult(this);
         mBinding.setSignUpViewModel(viewModel);
+        viewModel.setResult(this);
 
         mAuth = FirebaseAuth.getInstance();
         createAccount();
+        mBinding.btnSignup.setOnClickListener(v -> {
+            Log.d("email", Objects.requireNonNull(viewModel.email.getValue()));
+            Log.d("email", Objects.requireNonNull(viewModel.password.getValue()));
+        });
         mBinding.linkLogin.setOnClickListener(v -> goToLogIn());
         return mBinding.getRoot();
     }
@@ -75,7 +80,9 @@ public class SignUpFragment extends Fragment implements Result<User> {
 
     private void goToLogIn() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            ReplaceFragment.replaceFragment(getActivity(), LoginFragment.newInstance(), true);
+            ReplaceFragment.replaceFragment(getActivity(),
+                    LoginFragment.newInstance(currentUser.getEmail(),
+                            currentUser.getPassword()), true);
         }
     }
 
@@ -86,7 +93,9 @@ public class SignUpFragment extends Fragment implements Result<User> {
 
     @Override
     public void onSuccess(User user, String message) {
+        currentUser = user;
         Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
+        goToLogIn();
     }
 }
 

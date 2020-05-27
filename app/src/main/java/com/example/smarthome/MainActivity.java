@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         FragmentManager fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.add(R.id.frame_container, LoginFragment.newInstance()).commit();
+        transaction.add(R.id.frame_container, new LoginFragment()).commit();
         FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(MainActivity.this, instanceIdResult -> {
             String newToken = instanceIdResult.getToken();
             Log.d("token", newToken);

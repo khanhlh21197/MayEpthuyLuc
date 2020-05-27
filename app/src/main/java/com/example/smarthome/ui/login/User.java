@@ -39,15 +39,6 @@ public class User implements Serializable {
     @Expose
     private String idDevice;
 
-    public User(String email, String password, String name, String address, String mobile, String idDevice) {
-        this.email = email;
-        this.password = password;
-        this.name = name;
-        this.address = address;
-        this.mobile = mobile;
-        this.idDevice = idDevice;
-    }
-
     public User(String email, String password, String idDevice) {
         this.email = email;
         this.password = password;

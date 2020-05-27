@@ -24,12 +24,36 @@ public class MainViewModel extends ViewModel {
         return liveDataSnapShot;
     }
 
-    public MutableLiveData<DataSnapshot> getDevicesOfUser(String idDevice){
+    public MutableLiveData<DataSnapshot> getDevicesOfUser(String idDevice) {
         MutableLiveData<DataSnapshot> liveDataSnapShot = new MutableLiveData<>();
         getFBDevicesOfUser(liveDataSnapShot::setValue, idDevice);
         return liveDataSnapShot;
     }
 
+
+    public MutableLiveData<DataSnapshot> monitoringJustTemp(String idDevice) {
+        MutableLiveData<DataSnapshot> temp = new MutableLiveData<>();
+        getFBJustTemp(item -> {
+            for (DataSnapshot dataSnapshot : item.getChildren()) {
+                temp.setValue(dataSnapshot);
+            }
+        }, idDevice);
+        return temp;
+    }
+
+    private void getFBJustTemp(FireBaseCallBack<DataSnapshot> callBack, String idDevice) {
+        deviceRef.child(idDevice).child("no").addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                callBack.afterDataChanged(dataSnapshot);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
 
     private void getFBData(FireBaseCallBack<DataSnapshot> fireBaseCallBack) {
         deviceRef.addValueEventListener(new ValueEventListener() {

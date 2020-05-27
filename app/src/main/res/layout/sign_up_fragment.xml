@@ -28,102 +28,56 @@
                 android:layout_marginBottom="@dimen/_24sdp"
                 android:src="@drawable/ic_smart_home" />
 
-            <!-- Name Label -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/emailAddress"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/_8sdp"
                 android:layout_marginBottom="@dimen/_8sdp">
 
                 <EditText
-                    android:id="@+id/input_name"
+                    android:id="@+id/txtEmailAddress"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Tên"
-                    android:inputType="textPersonName"
-                    android:text="@{SignUpViewModel.name}" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Address Label -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_8sdp"
-                android:layout_marginBottom="@dimen/_8sdp">
-
-                <EditText
-                    android:id="@+id/input_address"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Địa chỉ"
-                    android:inputType="textPostalAddress"
-                    android:text="@{SignUpViewModel.address}" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-
-            <!--  Email Label -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_8sdp"
-                android:layout_marginBottom="@dimen/_8sdp">
-
-                <EditText
-                    android:id="@+id/input_email"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Email"
+                    android:ems="10"
+                    android:hint="@string/email_or_username"
                     android:inputType="textEmailAddress"
-                    android:text="@{SignUpViewModel.email}" />
+                    android:text="@={SignUpViewModel.email}" />
             </com.google.android.material.textfield.TextInputLayout>
 
-
-            <!-- mobile number -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/_8sdp"
                 android:layout_marginBottom="@dimen/_8sdp">
 
                 <EditText
-                    android:id="@+id/input_mobile"
+                    android:id="@+id/txtPassword"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Số điện thoại"
-                    android:inputType="number"
-                    android:text="@{SignUpViewModel.mobile}" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <!-- Password Label -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_8sdp"
-                android:layout_marginBottom="@dimen/_8sdp">
-
-                <EditText
-                    android:id="@+id/input_password"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:hint="Mật khẩu"
+                    android:ems="10"
+                    android:hint="@string/password"
                     android:inputType="textPassword"
-                    android:text="@{SignUpViewModel.password}" />
+                    android:text="@={SignUpViewModel.password}" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Password Re-enter Label -->
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/rePassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/_8sdp"
                 android:layout_marginBottom="@dimen/_8sdp">
 
                 <EditText
-                    android:id="@+id/input_reEnterPassword"
+                    android:id="@+id/txtRePassword"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Nhập lại mật khẩu"
+                    android:ems="10"
+                    android:hint="@string/rePassword"
                     android:inputType="textPassword"
-                    android:text="@{SignUpViewModel.rePassword}" />
+                    android:text="@={SignUpViewModel.rePassword}" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Signup Button -->
@@ -139,7 +93,7 @@
                 android:gravity="center"
                 android:onClick="@{(v) -> SignUpViewModel.onClick(v)}"
                 android:padding="@dimen/_12sdp"
-                android:text="Tạo tài khoản"
+                android:text="@string/create_account"
                 android:textAllCaps="true"
                 android:textStyle="bold" />
 
@@ -149,7 +103,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/_24sdp"
                 android:gravity="center"
-                android:text="Bạn đã có tài khoản? Đăng nhập"
+                android:text="@string/already_have_account"
                 android:textSize="@dimen/_16ssp" />
 
         </LinearLayout>

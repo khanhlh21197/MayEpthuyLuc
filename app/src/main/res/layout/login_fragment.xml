@@ -49,7 +49,7 @@
                     android:layout_marginTop="@dimen/_32sdp"
                     android:layout_marginEnd="@dimen/_32sdp"
                     android:ems="10"
-                    android:hint="Email hoặc tên tài khoản"
+                    android:hint="@string/email_or_username"
                     android:inputType="textEmailAddress"
                     android:text="@={LoginViewModel.Email}" />
             </com.google.android.material.textfield.TextInputLayout>
@@ -72,7 +72,7 @@
                     android:layout_marginTop="@dimen/_16sdp"
                     android:layout_marginEnd="@dimen/_32sdp"
                     android:ems="10"
-                    android:hint="Mật khẩu"
+                    android:hint="@string/password"
                     android:inputType="textPassword"
                     android:text="@={LoginViewModel.Password}" />
             </com.google.android.material.textfield.TextInputLayout>
@@ -90,7 +90,7 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
                     android:layout_marginEnd="@dimen/_32sdp"
-                    android:text="Lưu tài khoản" />
+                    android:text="@string/save_user" />
 
             </RelativeLayout>
 
@@ -103,7 +103,7 @@
                 android:layout_marginEnd="@dimen/_32sdp"
                 android:background="@drawable/btn_onpress_background_gradient_blue"
                 android:onClick="@{(v) -> LoginViewModel.onClick(v)}"
-                android:text="Đăng nhập"
+                android:text="@string/login"
                 android:textSize="@dimen/_18ssp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -115,7 +115,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:gravity="center"
-                android:text="Tạo tài khoản"
+                android:text="@string/create_account"
                 android:textSize="@dimen/_16ssp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

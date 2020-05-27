@@ -26,9 +26,11 @@ import com.example.smarthome.common.CommonActivity;
 import com.example.smarthome.ui.device.model.Device;
 import com.example.smarthome.utils.FireBaseCallBack;
 import com.example.smarthome.warning.NotificationIntentService;
+import com.example.smarthome.warning.WarningService;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.GenericTypeIndicator;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
@@ -37,10 +39,12 @@ import java.util.TimerTask;
 
 public class TempMonitoringService extends LifecycleService implements Serializable {
     public static final String EXTRA_BUTTON_CLICKED = "EXTRA_BUTTON_CLICKED";
+    public static boolean isRunning = false;
     private Timer timer;
     public int counter = 0;
     public static Vibrator v;
     public static MediaPlayer mediaPlayer;
+    public static Intent warningService;
 
     public TempMonitoringService() {
     }
@@ -82,6 +86,10 @@ public class TempMonitoringService extends LifecycleService implements Serializa
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
 
+        isRunning = true;
+
+        initMedia();
+
         if (!CommonActivity.isNullOrEmpty(intent)
                 && !CommonActivity.isNullOrEmpty(intent.getExtras())
                 && !CommonActivity.isNullOrEmpty(intent.getExtras().getString("idDevice"))) {
@@ -97,7 +105,7 @@ public class TempMonitoringService extends LifecycleService implements Serializa
                                 Device device = devices.get(i);
                                 if (idDevice.contains(device.getId())) {
                                     if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
-                                        createNotification(device.getNO(), device.getId(), i);
+                                        createNotification(device, i);
                                     }
                                 }
                             }
@@ -114,7 +122,11 @@ public class TempMonitoringService extends LifecycleService implements Serializa
         if (v != null && v.hasVibrator()) {
             v.cancel();
         }
-        stopMedia();
+
+        isRunning = false;
+
+        stopService(warningService);
+
         Log.v("TempMonitoringService", "onDestroy");
         super.onDestroy();
 
@@ -134,9 +146,13 @@ public class TempMonitoringService extends LifecycleService implements Serializa
         callBack.afterDataChanged(devices);
     }
 
-    private void createNotification(String ng, String idDevice, int idNoti) {
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void createNotification(Device device, int idNoti) {
         RemoteViews notificationLayout =
                 new RemoteViews(getPackageName(), R.layout.notification_monitoring);
+        notificationLayout.setTextViewText(R.id.message, device.getNO()
+                + " độ trên thiết bị "
+                + device.getName());
 
         Intent stopWarning = new Intent(this, NotificationIntentService.class);
         stopWarning.setAction("stopWarning");
@@ -149,7 +165,7 @@ public class TempMonitoringService extends LifecycleService implements Serializa
                 new NotificationCompat.Builder(getApplicationContext(), "notify_001");
         Intent ii = new Intent(getApplicationContext(), MainActivity.class);
         ii.putExtra("menuFragment", "DetailDeviceFragment");
-        ii.putExtra("idDevice", idDevice);
+        ii.putExtra("idDevice", device.getId());
 
         mBuilder.setSmallIcon(R.drawable.ic_warning_red);
         mBuilder.setCustomContentView(notificationLayout);
@@ -179,32 +195,43 @@ public class TempMonitoringService extends LifecycleService implements Serializa
     private void initMedia() {
         mediaPlayer = MediaPlayer.create(this, R.raw.warning);
         mediaPlayer.setOnCompletionListener(mp -> stopSelf());
+
+        warningService = new Intent(this, WarningService.class);
     }
 
     private void startMedia() {
-        try {
-            if (mediaPlayer == null) {
-                initMedia();
-            } else {
-                mediaPlayer.stop();
-            }
-            if (!mediaPlayer.isPlaying()) {
-                mediaPlayer.start();
-                Log.d("mediaPlayer", "started");
-            }
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
+        if (!WarningService.isRunning) {
+            startService(warningService);
         }
+//        try {
+//            if (mediaPlayer == null) {
+//                initMedia();
+//                if (!mediaPlayer.isPlaying()) {
+//                    mediaPlayer.start();
+//                    Log.d("mediaPlayer", "started");
+//                }
+//            } else {
+//                if (!mediaPlayer.isPlaying()) {
+//                    mediaPlayer.start();
+//                    Log.d("mediaPlayer", "started");
+//                }
+//            }
+//        } catch (IllegalStateException e) {
+//            e.printStackTrace();
+//        }
     }
 
     public static void stopMedia() {
         try {
-            if (mediaPlayer.isPlaying()) {
-                mediaPlayer.stop();
-                Log.d("mediaPlayer", "stopped");
+            if (mediaPlayer != null) {
+                if (mediaPlayer.isPlaying()) {
+                    mediaPlayer.stop();
+                    mediaPlayer.prepare();
+                    Log.d("mediaPlayer", "stopped");
+                }
+                mediaPlayer.release();
             }
-            mediaPlayer.release();
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException | IOException e) {
             e.printStackTrace();
         }
     }

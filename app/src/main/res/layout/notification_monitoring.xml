@@ -5,12 +5,12 @@
     android:background="@color/white"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="16dp">
+    android:padding="4dp">
 
     <ImageView
         android:id="@+id/imgLogo"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
         android:layout_marginEnd="24dp"
         android:src="@drawable/ic_warning_red" />
 
@@ -19,8 +19,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_toEndOf="@+id/imgLogo"
+        android:maxLines="1"
         android:text="Nhiệt độ vượt ngưỡng cho phép"
-        android:textSize="@dimen/_16ssp" />
+        android:textSize="@dimen/_12ssp" />
 
     <LinearLayout
         android:id="@+id/removeWarning"
@@ -37,7 +38,7 @@
             android:layout_height="match_parent"
             android:text="Tắt âm báo"
             android:textAllCaps="true"
-            android:textSize="@dimen/_14ssp" />
+            android:textSize="@dimen/_12ssp" />
 
     </LinearLayout>
 </RelativeLayout>

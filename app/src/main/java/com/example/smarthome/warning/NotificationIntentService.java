@@ -7,8 +7,6 @@ import android.os.Looper;
 
 import androidx.annotation.Nullable;
 
-import com.example.smarthome.ui.main.TempMonitoringService;
-
 import java.util.Objects;
 
 public class NotificationIntentService extends IntentService {
@@ -22,7 +20,14 @@ public class NotificationIntentService extends IntentService {
             switch (Objects.requireNonNull(intent.getAction())) {
                 case "stopWarning":
                     Handler stopWarningHandler = new Handler(Looper.getMainLooper());
-                    stopWarningHandler.post(TempMonitoringService::stopMedia);
+                    stopWarningHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            Intent warningService
+                                    = new Intent(NotificationIntentService.this, WarningService.class);
+                            stopService(warningService);
+                        }
+                    });
                     break;
             }
         }

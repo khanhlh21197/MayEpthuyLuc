@@ -45,6 +45,8 @@ import java.util.Map;
 import java.util.Objects;
 
 public class LoginFragment extends Fragment implements Result {
+    public static final String ARG_EMAIL = "ARG_EMAIL";
+    public static final String ARG_PASSWORD = "ARG_PASSWORD";
     private LoginViewModel loginViewModel;
     private Activity mActivity;
     private LoginFragmentBinding binding;
@@ -55,10 +57,14 @@ public class LoginFragment extends Fragment implements Result {
     private EditText txtInputDevice;
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private DatabaseReference userRef = database.getReference("users");
+    private String email = "";
+    private String password = "";
 
-    public static LoginFragment newInstance() {
+    public static LoginFragment newInstance(String email, String password) {
 
         Bundle args = new Bundle();
+        args.putString(ARG_EMAIL, email);
+        args.putString(ARG_PASSWORD, password);
 
         LoginFragment fragment = new LoginFragment();
         fragment.setArguments(args);
@@ -76,7 +82,19 @@ public class LoginFragment extends Fragment implements Result {
         mActivity = getActivity();
         binding = DataBindingUtil.inflate(inflater, R.layout.login_fragment, container, false);
         unit();
+        getBundleData();
         return binding.getRoot();
+    }
+
+    private void getBundleData() {
+        Bundle bundle = getArguments();
+        if (!CommonActivity.isNullOrEmpty(bundle)) {
+            email = bundle.getString(ARG_EMAIL);
+            password = bundle.getString(ARG_PASSWORD);
+
+            binding.txtEmailAddress.setText(email);
+            binding.txtPassword.setText(password);
+        }
     }
 
     @Override
@@ -192,6 +210,7 @@ public class LoginFragment extends Fragment implements Result {
 
     private class AllOnCompleteListener implements OnCompleteListener<Map<DatabaseReference, DataSnapshot>> {
         private ProgressBar progressBar;
+
         @Override
         public void onComplete(@NonNull Task<Map<DatabaseReference, DataSnapshot>> task) {
             if (task.isSuccessful()) {

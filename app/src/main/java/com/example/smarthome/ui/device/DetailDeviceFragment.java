@@ -2,6 +2,7 @@ package com.example.smarthome.ui.device;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -33,7 +34,7 @@ import com.example.smarthome.common.CommonActivity;
 import com.example.smarthome.databinding.DetailDeviceFragmentBinding;
 import com.example.smarthome.serializer.ObjectSerializer;
 import com.example.smarthome.ui.device.model.Device;
-import com.example.smarthome.ui.main.TempMonitoringService;
+import com.example.smarthome.warning.WarningService;
 import com.google.firebase.database.GenericTypeIndicator;
 
 import java.io.IOException;
@@ -46,6 +47,7 @@ public class DetailDeviceFragment extends Fragment {
     private static final String SHARED_PREFS_HISTORY = "SHARED_PREFS_HISTORY";
     private static final String KEY_HISTORY = "HISTORY";
     private Vibrator v;
+    private Intent warningService;
 
     private DetailDeviceFragmentBinding mBinding;
     private DetailDeviceViewModel viewModel;
@@ -97,7 +99,7 @@ public class DetailDeviceFragment extends Fragment {
         if (CommonActivity.isNullOrEmpty(history)) {
             history = new ArrayList<>();
         }
-        SharedPreferences prefs = Objects.requireNonNull(getActivity()).getSharedPreferences(SHARED_PREFS_HISTORY, Context.MODE_PRIVATE);
+        prefs = Objects.requireNonNull(getActivity()).getSharedPreferences(SHARED_PREFS_HISTORY, Context.MODE_PRIVATE);
         try {
             history = (ArrayList<Device>) ObjectSerializer.deserialize(prefs.getString(KEY_HISTORY, ObjectSerializer.serialize(new ArrayList<Device>())));
         } catch (IOException e) {
@@ -123,6 +125,8 @@ public class DetailDeviceFragment extends Fragment {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void unit() {
+        warningService = new Intent(getActivity(), WarningService.class);
+
         viewModel = ViewModelProviders
                 .of(Objects.requireNonNull(getActivity()))
                 .get(DetailDeviceViewModel.class);
@@ -150,6 +154,7 @@ public class DetailDeviceFragment extends Fragment {
             String ng = mBinding.edtThreshold.getText().toString().trim();
             if (!CommonActivity.isNullOrEmpty(ng)) {
                 viewModel.setNG(indexOfDevice, ng);
+                mBinding.edtThreshold.setText("");
 //                observeTemperature();
             } else {
                 CommonActivity.showConfirmValidate(getActivity(), "Vui lòng nhập giá trị ngưỡng");
@@ -157,11 +162,12 @@ public class DetailDeviceFragment extends Fragment {
         });
 
         mBinding.btnDeleteHistory.setOnClickListener(v -> {
-            if (!CommonActivity.isNullOrEmpty(editor)) {
-                editor.clear();
-                editor.commit();
-                historyAdapter.notifyDataSetChanged();
-            }
+            prefs = Objects.requireNonNull(getActivity()).getSharedPreferences(SHARED_PREFS_HISTORY, Context.MODE_PRIVATE);
+            editor = prefs.edit();
+            editor.clear();
+            editor.apply();
+            history.clear();
+            historyAdapter.notifyDataSetChanged();
         });
 
 //        viewModel.onTemperatureChange(indexOfDevice).observe(Objects.requireNonNull(getActivity()), dataSnapshot -> {
@@ -206,12 +212,18 @@ public class DetailDeviceFragment extends Fragment {
     }
 
     private void startWarning(String ng) {
-//        playWarningSound();
-//        vibrate();
+        playWarningSound();
+        vibrate();
         mBinding.txtHumanTemp.setAnimation(createFlashingAnimation());
         mBinding.btnWarning.setVisibility(View.VISIBLE);
         mBinding.btnWarning.setAnimation(createFlashingAnimation());
 //        showNoti();
+    }
+
+    private void playWarningSound() {
+        if (!WarningService.isRunning) {
+            Objects.requireNonNull(getActivity()).startService(warningService);
+        }
     }
 
     private void cancelWarning() {
@@ -225,11 +237,7 @@ public class DetailDeviceFragment extends Fragment {
         mBinding.btnWarning.setVisibility(View.GONE);
 //        Toast.makeText(getActivity(), "Warning Cancelled", Toast.LENGTH_LONG).show();
 //    }
-//
-//    private void playWarningSound() {
-//        warningIntent = new Intent(getActivity(), WarningService.class);
-//        Objects.requireNonNull(getActivity()).startService(warningIntent);
-        TempMonitoringService.stopMedia();
+        Objects.requireNonNull(getActivity()).stopService(warningService);
     }
 
     private void vibrate() {

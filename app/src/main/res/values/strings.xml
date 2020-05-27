@@ -34,4 +34,18 @@
     <string name="title_profile">Profile</string>
     <string name="channel_name">Channel Name</string>
     <string name="channel_description">Channel Description</string>
+    <string name="already_have_account">Bạn đã có tài khoản? <font color='#FF0000'>Đăng nhập</font></string>
+    <string name="create_account">Tạo tài khoản</string>
+    <string name="email_or_username">Email hoặc tên tài khoản</string>
+    <string name="password">Mật khẩu</string>
+    <string name="rePassword">Nhập lại mật khẩu</string>
+    <string name="save_user">Lưu tài khoản</string>
+    <string name="login">Đăng nhập</string>
+    <string name="manage_device">Quản lý thiết bị</string>
+    <string name="no_device">Không có thiết bị, vui lòng thêm thiết bị</string>
+    <string name="turn_on_monitoring">Bật theo dõi nhiệt độ</string>
+    <string name="turn_off_monitoring">Bật theo dõi nhiệt độ</string>
+    <string name="input_device_name">Vui lòng nhập tên thiết bị</string>
+    <string name="delete">Xóa</string>
+    <string name="change_device_name">Đổi tên thiết bị</string>
 </resources>

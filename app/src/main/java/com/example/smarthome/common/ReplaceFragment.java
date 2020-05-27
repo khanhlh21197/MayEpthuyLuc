@@ -35,6 +35,10 @@ public class ReplaceFragment {
             if (!fragmentPopped) { // fragment not in back stack, create it.
                 FragmentTransaction ft = manager.beginTransaction();
 
+                if (isAnimation) {
+                    ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+                }
+
                 ft.replace(R.id.frame_container, fragment, backStateName);
 
                 ft.addToBackStack(backStateName);

@@ -80,10 +80,12 @@ public class Device implements Serializable {
     }
 
     public String getTime() {
-        Date date = Calendar.getInstance().getTime();
-        @SuppressLint("SimpleDateFormat") DateFormat dateFormat
-                = new SimpleDateFormat("dd-MM-yyyy     HH:mm:ss");
-        time = dateFormat.format(date);
+        if (time == null) {
+            Date date = Calendar.getInstance().getTime();
+            @SuppressLint("SimpleDateFormat") DateFormat dateFormat
+                    = new SimpleDateFormat("dd-MM-yyyy     HH:mm:ss");
+            time = dateFormat.format(date);
+        }
         return time;
     }
 
