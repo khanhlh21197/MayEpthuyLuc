@@ -1,5 +1,6 @@
 package com.example.smarthome.ui.main;
 
+import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -117,8 +118,13 @@ public class TempMonitoringService extends LifecycleService implements Serializa
         return START_STICKY;
     }
 
+    @SuppressLint("WrongConstant")
     @Override
     public void onDestroy() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            stopForeground(1);
+            stopForeground(9);
+        }
         if (v != null && v.hasVibrator()) {
             v.cancel();
         }

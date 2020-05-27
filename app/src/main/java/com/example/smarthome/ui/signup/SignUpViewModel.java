@@ -46,7 +46,10 @@ public class SignUpViewModel extends ViewModel {
 
     private boolean validate(User user) {
         String message = "";
-        if (!CommonActivity.isNullOrEmpty(password.getValue())
+        if (CommonActivity.isNullOrEmpty(email)) {
+            result.onFailure("Vui lòng nhập Email hoặc tên tài khoản!");
+            return false;
+        } else if (!CommonActivity.isNullOrEmpty(password.getValue())
                 && password.getValue().length() < 5) {
             message = "Mật khẩu phải lớn hơn 5 kí tự!";
             result.onFailure(message);

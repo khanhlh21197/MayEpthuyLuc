@@ -83,7 +83,7 @@ public class Device implements Serializable {
         if (time == null) {
             Date date = Calendar.getInstance().getTime();
             @SuppressLint("SimpleDateFormat") DateFormat dateFormat
-                    = new SimpleDateFormat("dd-MM-yyyy     HH:mm:ss");
+                    = new SimpleDateFormat("dd-MM-yyyy   HH:mm:ss");
             time = dateFormat.format(date);
         }
         return time;

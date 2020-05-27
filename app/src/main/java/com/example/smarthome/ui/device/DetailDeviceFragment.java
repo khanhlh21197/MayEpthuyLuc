@@ -81,8 +81,8 @@ public class DetailDeviceFragment extends Fragment {
                         R.layout.detail_device_fragment,
                         container,
                         false);
-        unit();
         getHistory();
+        unit();
         initAdapter();
         editDeviceName();
         return mBinding.getRoot();
@@ -142,6 +142,10 @@ public class DetailDeviceFragment extends Fragment {
                     if (device.getId().equals(DetailDeviceFragment.this.device.getId())) {
                         indexOfDevice = devices.indexOf(device);
                         liveData.setValue(device);
+                        mBinding.setDetailDevice(device);
+                        @SuppressLint("SimpleDateFormat") String timeStamp
+                                = new SimpleDateFormat("dd-MM-yyyy  HH:mm:ss").format(Calendar.getInstance().getTime());
+                        device.setTime(timeStamp);
                         break;
                     }
                 }
@@ -155,7 +159,6 @@ public class DetailDeviceFragment extends Fragment {
             if (!CommonActivity.isNullOrEmpty(ng)) {
                 viewModel.setNG(indexOfDevice, ng);
                 mBinding.edtThreshold.setText("");
-//                observeTemperature();
             } else {
                 CommonActivity.showConfirmValidate(getActivity(), "Vui lòng nhập giá trị ngưỡng");
             }
@@ -184,31 +187,44 @@ public class DetailDeviceFragment extends Fragment {
     private void observeTemperature() {
         liveData.observe(Objects.requireNonNull(getActivity()), device -> {
             mBinding.setDetailDevice(device);
+            @SuppressLint("SimpleDateFormat") String timeStamp
+                    = new SimpleDateFormat("dd-MM-yyyy  HH:mm:ss").format(Calendar.getInstance().getTime());
+            device.setTime(timeStamp);
             try {
-                if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
-                    @SuppressLint("SimpleDateFormat") String timeStamp
-                            = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss").format(Calendar.getInstance().getTime());
-                    device.setTime(timeStamp);
-                    history.add(0, device);
-                    mBinding.tvHighTemp.setText("Số người sốt: " + history.size());
-                    saveHistory(history);
-                    historyAdapter.notifyItemInserted(0);
-                    mBinding.listHistory.smoothScrollToPosition(0);
-//                    highTemp++;
-//                    viewModel.setTotal(indexOfDevice, String.valueOf(highTemp));
-                    startWarning(device.getNG());
-                    mBinding.btnWarning.setOnClickListener(v -> {
-                        cancelWarning();
-                    });
-                    Log.d("history", String.valueOf(history.size()));
-                    Log.d("highTemp", String.valueOf(highTemp));
+                if (!CommonActivity.isNullOrEmpty(history)) {
+                    if (!device.getNO().equals(history.get(history.size() - 1).getNO())
+                            && !device.getNO().equals(history.get(0).getNO())) {
+                        compareTemp();
+                    }
                 } else {
-                    cancelWarning();
+                    compareTemp();
                 }
-            } catch (Exception e) {
+                mBinding.tvTotal.setText("Tổng số người đo : " + history.size());
+            } catch (IndexOutOfBoundsException | NumberFormatException e) {
                 e.printStackTrace();
             }
         });
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void compareTemp() {
+        if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
+            history.add(0, device);
+            saveHistory(history);
+            historyAdapter.notifyItemInserted(0);
+            mBinding.listHistory.smoothScrollToPosition(0);
+            startWarning(device.getNG());
+            mBinding.btnWarning.setOnClickListener(v -> {
+                cancelWarning();
+            });
+            Log.d("history", String.valueOf(history.size()));
+            Log.d("highTemp", String.valueOf(highTemp));
+        } else {
+            history.add(device);
+            saveHistory(history);
+            historyAdapter.notifyItemInserted(history.size());
+            cancelWarning();
+        }
     }
 
     private void startWarning(String ng) {
@@ -231,7 +247,9 @@ public class DetailDeviceFragment extends Fragment {
 //            return;
 //        }
 //        Objects.requireNonNull(getActivity()).stopService(warningIntent);
-//        v.cancel();
+        if (v != null) {
+            v.cancel();
+        }
         mBinding.txtHumanTemp.clearAnimation();
         mBinding.btnWarning.clearAnimation();
         mBinding.btnWarning.setVisibility(View.GONE);
@@ -286,6 +304,7 @@ public class DetailDeviceFragment extends Fragment {
         prefs = Objects.requireNonNull(getActivity()).getSharedPreferences(SHARED_PREFS_HISTORY, Context.MODE_PRIVATE);
         editor = prefs.edit();
         try {
+            editor.clear();
             editor.putString(KEY_HISTORY, ObjectSerializer.serialize(history));
         } catch (IOException e) {
             e.printStackTrace();

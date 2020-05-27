@@ -1,7 +1,9 @@
 package com.example.smarthome.ui.main;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -44,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemClickListener<Device> {
+    private static final String MyPREFERENCES = "MyPrefs1";
 
     private MainViewModel mainViewModel;
     private LoginViewModel loginViewModel;
@@ -53,6 +56,7 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
     private String idDevice;
     private EditText txtInputDevice;
     private Intent tempMonitoringService;
+    private SharedPreferences sharedPreferences;
 
     public static MainFragment newInstance(String idDevice) {
 
@@ -124,6 +128,10 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
 
         // TODO: Use the ViewModel
         // Read from the database
+        tempMonitoringService = new Intent(getActivity(), TempMonitoringService.class);
+        tempMonitoringService.putExtra("idDevice", idDevice);
+
+        initSharedPreferences();
         observeAllDevice();
         onSwitchObserveChange();
 
@@ -131,9 +139,20 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
     }
 
     private void onSwitchObserveChange() {
-        mainFragmentBinding.switchObserve.setChecked(true);
         mainFragmentBinding.tvObserve.setText(getString(R.string.turn_on_monitoring));
+        if (mainFragmentBinding.switchObserve.isChecked()) {
+            startService();
+        } else {
+            stopService();
+        }
         mainFragmentBinding.switchObserve.setOnCheckedChangeListener((buttonView, isChecked) -> {
+
+            boolean switchStatus = mainFragmentBinding.switchObserve.isChecked();
+
+            @SuppressLint("CommitPrefEdits") SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean("serviceRunning", switchStatus);
+            editor.apply();
+
             if (isChecked) {
                 startService();
                 mainFragmentBinding.tvObserve.setText(getString(R.string.turn_on_monitoring));
@@ -144,17 +163,23 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
         });
     }
 
-    public void startService() {
-        if (!TempMonitoringService.isRunning) {
-            tempMonitoringService = new Intent(getActivity(), TempMonitoringService.class);
-            tempMonitoringService.putExtra("idDevice", idDevice);
-            Objects.requireNonNull(getActivity()).startService(tempMonitoringService);
+    private void startService() {
+        Objects.requireNonNull(getActivity()).startService(tempMonitoringService);
+    }
+
+    private void stopService() {
+        if (!CommonActivity.isNullOrEmpty(tempMonitoringService)) {
+            Objects.requireNonNull(getActivity()).stopService(tempMonitoringService);
         }
     }
 
-    public void stopService() {
-        if (!CommonActivity.isNullOrEmpty(tempMonitoringService) && TempMonitoringService.isRunning) {
-            Objects.requireNonNull(getActivity()).stopService(tempMonitoringService);
+    private void initSharedPreferences() {
+        sharedPreferences = Objects.requireNonNull(getActivity()).getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
+        boolean switchStatus = sharedPreferences.getBoolean("serviceRunning", false);
+        if (!CommonActivity.isNullOrEmpty(switchStatus)) {
+            mainFragmentBinding.switchObserve.setChecked(switchStatus);
+        } else {
+            mainFragmentBinding.switchObserve.setChecked(true);
         }
     }
 
@@ -182,7 +207,7 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
                             mainFragmentBinding.tvObserve.setVisibility(View.GONE);
                             mainFragmentBinding.switchObserve.setVisibility(View.GONE);
                         }
-                        startService();
+//                        startService();
                     } catch (NullPointerException e) {
                         e.printStackTrace();
                     }
@@ -229,7 +254,7 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
         alert.setPositiveButton(getString(R.string.ok), (dialog, which) -> {
             if (txtInputDevice.getText() != null) {
                 idDevice += txtInputDevice.getText().toString();
-                loginViewModel.insertDevice(idDevice, new OnCompleteListener<Void>() {
+                loginViewModel.updateDevice(idDevice, new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         observeAllDevice();
@@ -272,7 +297,7 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
                 v -> {
                     if (idDevice.contains(item.getId())) {
                         idDevice = idDevice.replaceAll(item.getId(), "");
-                        loginViewModel.insertDevice(idDevice, new OnCompleteListener<Void>() {
+                        loginViewModel.updateDevice(idDevice, new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 observeAllDevice();

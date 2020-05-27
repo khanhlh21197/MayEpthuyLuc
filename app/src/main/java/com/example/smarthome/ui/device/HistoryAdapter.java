@@ -15,9 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.smarthome.R;
 import com.example.smarthome.ui.device.model.Device;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 
 public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
     private Activity context;
@@ -46,6 +44,17 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
         Device device = history.get(position);
         holder.tvTime.setText(device.getTime());
         holder.tvTemperature.setText("Nhiệt độ : " + device.getNO() + " độ C");
+        try {
+            if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
+                holder.tvTemperature.setTextColor(context.getResources().getColor(R.color.red));
+                holder.tvTime.setTextColor(context.getResources().getColor(R.color.red));
+            } else {
+                holder.tvTemperature.setTextColor(context.getResources().getColor(R.color.black));
+                holder.tvTime.setTextColor(context.getResources().getColor(R.color.black));
+            }
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

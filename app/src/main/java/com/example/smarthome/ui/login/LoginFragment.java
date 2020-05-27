@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,7 +31,6 @@ import com.example.smarthome.common.ReplaceFragment;
 import com.example.smarthome.databinding.LoginFragmentBinding;
 import com.example.smarthome.ui.main.MainFragment;
 import com.example.smarthome.ui.signup.SignUpFragment;
-import com.example.smarthome.utils.Result;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -41,10 +41,11 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
 
-public class LoginFragment extends Fragment implements Result {
+public class LoginFragment extends Fragment {
     public static final String ARG_EMAIL = "ARG_EMAIL";
     public static final String ARG_PASSWORD = "ARG_PASSWORD";
     private LoginViewModel loginViewModel;
@@ -59,6 +60,9 @@ public class LoginFragment extends Fragment implements Result {
     private DatabaseReference userRef = database.getReference("users");
     private String email = "";
     private String password = "";
+    private int progressStatus = 0;
+    private ArrayList<User> users = new ArrayList<>();
+    private User user = null;
 
     public static LoginFragment newInstance(String email, String password) {
 
@@ -113,12 +117,57 @@ public class LoginFragment extends Fragment implements Result {
         FirebaseMultiQuery query = new FirebaseMultiQuery(userRef);
         final Task<Map<DatabaseReference, DataSnapshot>> allLoad = query.start();
         allLoad.addOnCompleteListener(Objects.requireNonNull(getActivity()), new AllOnCompleteListener());
-        loginViewModel.getAllUsersLiveData();
-        loginViewModel.setResult(this);
+        users = loginViewModel.getAllUsersLiveData();
+
+        binding.btnLogin.setOnClickListener(v -> {
+            binding.progressBar.setVisibility(View.VISIBLE);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    binding.progressBar.setVisibility(View.GONE);
+                    String message = "";
+                    User inputUser = new User(loginViewModel.Email.getValue(),
+                            loginViewModel.Password.getValue());
+                    if (CommonActivity.isNullOrEmpty(loginViewModel.Email.getValue())
+                            || CommonActivity.isNullOrEmpty(loginViewModel.Password.getValue())) {
+                        message = "Vui lòng điền đủ thông tin đăng nhập!";
+                        CommonActivity.showConfirmValidate(mActivity, message);
+                        return;
+                    }
+                    if (isLoginSuccess(inputUser)) {
+                        message = "Đăng nhập thành công với " + inputUser.getEmail();
+                        CommonActivity.showConfirmValidate(mActivity, message);
+                    } else {
+                        message = "Sai tên email hoặc mật khẩu!";
+                        CommonActivity.showConfirmValidate(mActivity, message);
+                        return;
+                    }
+                    onLoginSuccess();
+                }
+            }, 1000);
+        });
 
         binding.signUp.setOnClickListener(v -> {
             ReplaceFragment.replaceFragment(mActivity, SignUpFragment.newInstance(), true);
         });
+    }
+
+    private boolean isLoginSuccess(User inputUser) {
+        if (!CommonActivity.isNullOrEmpty(users)) {
+            for (User user : users) {
+                if (user.getEmail().equals(inputUser.getEmail())
+                        && user.getPassword().equals(inputUser.getPassword())) {
+                    loginViewModel.setUserID(user.getUid());
+                    Log.d("isLoginSuccess", user.getUid());
+                    this.user = user;
+                    idDevice = user.getIdDevice();
+                    return true;
+                }
+            }
+        } else {
+            return false;
+        }
+        return false;
     }
 
     private void initSharedPreferences() {
@@ -135,15 +184,8 @@ public class LoginFragment extends Fragment implements Result {
         }
     }
 
-    @Override
-    public void onFailure(String message) {
-        CommonActivity.showConfirmValidate(mActivity, message);
-    }
-
-    @Override
-    public void onSuccess(Object o, String message) {
+    private void onLoginSuccess() {
         if (binding.saveUser.isChecked()) {
-            User user = (User) o;
             String email = user.getEmail();
             String password = user.getPassword();
             boolean saveUser = binding.saveUser.isChecked();
@@ -154,9 +196,9 @@ public class LoginFragment extends Fragment implements Result {
             editor.putBoolean("saveUser", saveUser);
             editor.apply();
         }
-
-        Toast.makeText(mActivity, message, Toast.LENGTH_SHORT).show();
-        displayAlertDialog();
+        ReplaceFragment.replaceFragment(mActivity,
+                MainFragment.newInstance(idDevice),
+                true);
     }
 
     private void displayAlertDialog() {
@@ -181,8 +223,8 @@ public class LoginFragment extends Fragment implements Result {
                 -> Toast.makeText(mActivity, "Cancel clicked", Toast.LENGTH_SHORT).show());
 
         alert.setPositiveButton("Đồng ý", (dialog, which) -> {
-            idDevice = loginViewModel.getUser().getIdDevice() + ";" + txtInputDevice.getText().toString();
-            loginViewModel.insertDevice(idDevice, new OnCompleteListener<Void>() {
+            idDevice += txtInputDevice.getText().toString();
+            loginViewModel.updateDevice(idDevice, new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
                     ReplaceFragment.replaceFragment(mActivity,

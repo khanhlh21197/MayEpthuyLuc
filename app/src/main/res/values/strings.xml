@@ -44,7 +44,7 @@
     <string name="manage_device">Quản lý thiết bị</string>
     <string name="no_device">Không có thiết bị, vui lòng thêm thiết bị</string>
     <string name="turn_on_monitoring">Bật theo dõi nhiệt độ</string>
-    <string name="turn_off_monitoring">Bật theo dõi nhiệt độ</string>
+    <string name="turn_off_monitoring">Tắt theo dõi nhiệt độ</string>
     <string name="input_device_name">Vui lòng nhập tên thiết bị</string>
     <string name="delete">Xóa</string>
     <string name="change_device_name">Đổi tên thiết bị</string>

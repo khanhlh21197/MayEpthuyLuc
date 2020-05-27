@@ -1,15 +1,12 @@
 package com.example.smarthome.ui.login;
 
 import android.util.Log;
-import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.smarthome.common.CommonActivity;
 import com.example.smarthome.utils.FireBaseCallBack;
-import com.example.smarthome.utils.Result;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -28,10 +25,9 @@ public class LoginViewModel extends ViewModel {
     private User user = null;
     private String userID = "";
     private ArrayList<User> users = new ArrayList<>();
-    private Result<User> result;
 
-    void setResult(Result<User> result) {
-        this.result = result;
+    public void setUserID(String userID) {
+        this.userID = userID;
     }
 
     ArrayList<User> getAllUsersLiveData() {
@@ -65,41 +61,7 @@ public class LoginViewModel extends ViewModel {
         });
     }
 
-    public void onClick(View view) {
-        User inputUser = new User(Email.getValue(), Password.getValue());
-        if (CommonActivity.isNullOrEmpty(Email.getValue()) || CommonActivity.isNullOrEmpty(Password.getValue())) {
-            result.onFailure("Vui lòng điền đủ thông tin đăng nhập!");
-            return;
-        }
-        if (isLoginSuccess(inputUser)) {
-            result.onSuccess(inputUser, "Đăng nhập thành công với " + inputUser.getEmail());
-        } else {
-            result.onFailure("Sai tên email hoặc mật khẩu!");
-        }
-    }
-
-    private boolean isLoginSuccess(User inputUser) {
-        if (!CommonActivity.isNullOrEmpty(users)) {
-            for (User user : users) {
-                if (user.getEmail().equals(inputUser.getEmail())
-                        && user.getPassword().equals(inputUser.getPassword())) {
-                    userID = user.getUid();
-                    Log.d("isLoginSuccess", userID);
-                    this.user = user;
-                    return true;
-                }
-            }
-        } else {
-            return false;
-        }
-        return false;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void insertDevice(String idDevice, OnCompleteListener<Void> onCompleteListener) {
+    public void updateDevice(String idDevice, OnCompleteListener<Void> onCompleteListener) {
         if (userID != null) {
             userRef.child(userID).child("idDevice")
                     .setValue(idDevice)
