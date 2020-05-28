@@ -25,6 +25,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProviders;
 
 import com.example.smarthome.FirebaseMultiQuery;
+import com.example.smarthome.MainActivity;
 import com.example.smarthome.R;
 import com.example.smarthome.common.CommonActivity;
 import com.example.smarthome.common.ReplaceFragment;
@@ -121,29 +122,26 @@ public class LoginFragment extends Fragment {
 
         binding.btnLogin.setOnClickListener(v -> {
             binding.progressBar.setVisibility(View.VISIBLE);
-            new Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    binding.progressBar.setVisibility(View.GONE);
-                    String message = "";
-                    User inputUser = new User(loginViewModel.Email.getValue(),
-                            loginViewModel.Password.getValue());
-                    if (CommonActivity.isNullOrEmpty(loginViewModel.Email.getValue())
-                            || CommonActivity.isNullOrEmpty(loginViewModel.Password.getValue())) {
-                        message = "Vui lòng điền đủ thông tin đăng nhập!";
-                        CommonActivity.showConfirmValidate(mActivity, message);
-                        return;
-                    }
-                    if (isLoginSuccess(inputUser)) {
-                        message = "Đăng nhập thành công với " + inputUser.getEmail();
-                        CommonActivity.showConfirmValidate(mActivity, message);
-                    } else {
-                        message = "Sai tên email hoặc mật khẩu!";
-                        CommonActivity.showConfirmValidate(mActivity, message);
-                        return;
-                    }
-                    onLoginSuccess();
+            new Handler().postDelayed(() -> {
+                binding.progressBar.setVisibility(View.GONE);
+                String message = "";
+                User inputUser = new User(loginViewModel.Email.getValue(),
+                        loginViewModel.Password.getValue());
+                if (CommonActivity.isNullOrEmpty(loginViewModel.Email.getValue())
+                        || CommonActivity.isNullOrEmpty(loginViewModel.Password.getValue())) {
+                    message = "Vui lòng điền đủ thông tin đăng nhập!";
+                    CommonActivity.showConfirmValidate(mActivity, message);
+                    return;
                 }
+                if (isLoginSuccess(inputUser)) {
+                    message = "Đăng nhập thành công với " + inputUser.getEmail();
+                    CommonActivity.showConfirmValidate(mActivity, message);
+                } else {
+                    message = "Sai tên email hoặc mật khẩu!";
+                    CommonActivity.showConfirmValidate(mActivity, message);
+                    return;
+                }
+                onLoginSuccess();
             }, 1000);
         });
 
@@ -248,6 +246,12 @@ public class LoginFragment extends Fragment {
                 }
             }
         }
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        ((MainActivity) Objects.requireNonNull(getActivity())).disableBackBtn();
     }
 
     private class AllOnCompleteListener implements OnCompleteListener<Map<DatabaseReference, DataSnapshot>> {

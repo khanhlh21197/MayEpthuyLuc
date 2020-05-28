@@ -24,6 +24,7 @@ import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.example.smarthome.ItemDecorationAlbumColumns;
+import com.example.smarthome.MainActivity;
 import com.example.smarthome.R;
 import com.example.smarthome.common.BaseBindingAdapter;
 import com.example.smarthome.common.CommonActivity;
@@ -227,6 +228,7 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
+        ((MainActivity) Objects.requireNonNull(getActivity())).enableBackBtn();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)

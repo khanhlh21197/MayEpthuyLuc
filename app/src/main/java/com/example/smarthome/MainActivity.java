@@ -4,24 +4,22 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import com.example.smarthome.ui.login.LoginFragment;
-import com.example.smarthome.ui.main.MainFragment;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.iid.FirebaseInstanceId;
 
+import java.util.Objects;
+
 public class MainActivity extends AppCompatActivity {
-    private Toolbar toolBar;
+
+    Toolbar toolbar;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -36,20 +34,9 @@ public class MainActivity extends AppCompatActivity {
             Log.d("token", newToken);
             Toast.makeText(MainActivity.this, newToken, Toast.LENGTH_SHORT).show();
         });
-//        String menuFragment = getIntent().getStringExtra("menuFragment");
-//        String idDevice = getIntent().getStringExtra("idDevice");
-//        if (!CommonActivity.isNullOrEmpty(menuFragment)){
-//            if (menuFragment.equals("DetailDeviceFragment")){
-//                ReplaceFragment.replaceFragment(this, MainFragment.newInstance(idDevice), false);
-//            }
-//        }
-//        BottomNavigationView bottom = findViewById(R.id.navigation);
-//        toolBar = getSupportActionBar();
-//        bottom.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
-//        ImageView btnBack = findViewById(R.id.btnBack);
-//        btnBack.setOnClickListener(v -> {
-//            onBackPressed();
-//        });
+
+        toolbar = findViewById(R.id.toolBar);
+        setSupportActionBar(toolbar);
     }
 
     @Override
@@ -58,28 +45,44 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
-            = new BottomNavigationView.OnNavigationItemSelectedListener() {
-        @Override
-        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-            Fragment fragment;
-            switch (item.getItemId()) {
-                case R.id.navigation_shop:
-                    toolBar.setTitle("Shop");
-                    return true;
-                case R.id.navigation_gifts:
-                    toolBar.setTitle("My Gifts");
-                    return true;
-                case R.id.navigation_cart:
-                    toolBar.setTitle("Cart");
-                    return true;
-                case R.id.navigation_profile:
-                    toolBar.setTitle("Profile");
-                    return true;
-            }
-            return false;
-        }
-    };
+    public void disableBackBtn() {
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(false);
+        getSupportActionBar().setDisplayShowHomeEnabled(false);
+    }
+
+    public void enableBackBtn() {
+        Objects.requireNonNull(getSupportActionBar()).setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setDisplayShowHomeEnabled(true);
+    }
+
+//    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
+//            = new BottomNavigationView.OnNavigationItemSelectedListener() {
+//        @Override
+//        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+//            Fragment fragment;
+//            switch (item.getItemId()) {
+//                case R.id.navigation_shop:
+//                    toolBar.setTitle("Shop");
+//                    return true;
+//                case R.id.navigation_gifts:
+//                    toolBar.setTitle("My Gifts");
+//                    return true;
+//                case R.id.navigation_cart:
+//                    toolBar.setTitle("Cart");
+//                    return true;
+//                case R.id.navigation_profile:
+//                    toolBar.setTitle("Profile");
+//                    return true;
+//            }
+//            return false;
+//        }
+//    };
+
+    @Override
+    public boolean onSupportNavigateUp() {
+        onBackPressed();
+        return true;
+    }
 
     @Override
     public void onBackPressed() {

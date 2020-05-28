@@ -4,31 +4,9 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-<!--    <androidx.appcompat.widget.Toolbar-->
-    <!--        android:id="@+id/toolbar"-->
-    <!--        android:layout_width="match_parent"-->
-    <!--        android:layout_height="wrap_content"-->
-    <!--        android:background="?attr/colorPrimary"-->
-    <!--        android:minHeight="?attr/actionBarSize"-->
-    <!--        app:titleTextColor="@android:color/white"-->
-    <!--        tools:targetApi="lollipop">-->
-
-    <!--        <ImageView-->
-    <!--            android:id="@+id/btnBack"-->
-    <!--            android:layout_width="wrap_content"-->
-    <!--            android:layout_height="wrap_content"-->
-    <!--            android:src="@drawable/ic_back" />-->
-
-    <!--        <TextView-->
-    <!--            android:id="@+id/title"-->
-    <!--            style="@style/TextAppearance.AppCompat.Widget.ActionBar.Title"-->
-    <!--            android:layout_width="wrap_content"-->
-    <!--            android:layout_height="wrap_content"-->
-    <!--            android:layout_gravity="center"-->
-    <!--            android:text="@string/app_name"-->
-    <!--            android:textColor="@android:color/white" />-->
-
-    <!--    </androidx.appcompat.widget.Toolbar>-->
+    <include
+        android:id="@+id/toolBar"
+        layout="@layout/custom_toolbar" />
 
     <FrameLayout
         android:id="@+id/frame_container"
