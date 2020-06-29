@@ -159,6 +159,7 @@ public class DetailDeviceFragment extends Fragment {
             if (!CommonActivity.isNullOrEmpty(ng)) {
                 viewModel.setNG(indexOfDevice, ng);
                 mBinding.edtThreshold.setText("");
+                Toast.makeText(getActivity(), "Cài đặt ngưỡng thành công!", Toast.LENGTH_SHORT).show();
             } else {
                 CommonActivity.showConfirmValidate(getActivity(), "Vui lòng nhập giá trị ngưỡng");
             }
@@ -191,15 +192,16 @@ public class DetailDeviceFragment extends Fragment {
                     = new SimpleDateFormat("dd-MM-yyyy  HH:mm:ss").format(Calendar.getInstance().getTime());
             device.setTime(timeStamp);
             try {
-                if (!CommonActivity.isNullOrEmpty(history)) {
-                    if (!device.getNO().equals(history.get(history.size() - 1).getNO())
-                            && !device.getNO().equals(history.get(0).getNO())) {
-                        compareTemp();
-                    }
-                } else {
-                    compareTemp();
-                }
-                mBinding.tvTotal.setText("Tổng số người đo : " + history.size());
+                compareTemp();
+//                if (!CommonActivity.isNullOrEmpty(history)) {
+//                    if (!device.getNO().equals(history.get(history.size() - 1).getNO())
+//                            && !device.getNO().equals(history.get(0).getNO())) {
+//                        compareTemp();
+//                    }
+//                } else {
+//                    compareTemp();
+//                }
+//                mBinding.tvTotal.setText("Tổng số người đo : " + history.size());
             } catch (IndexOutOfBoundsException | NumberFormatException e) {
                 e.printStackTrace();
             }
@@ -210,7 +212,7 @@ public class DetailDeviceFragment extends Fragment {
     private void compareTemp() {
         if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
             history.add(0, device);
-            saveHistory(history);
+//            saveHistory(history);
             historyAdapter.notifyItemInserted(0);
             mBinding.listHistory.smoothScrollToPosition(0);
             startWarning(device.getNG());
@@ -221,7 +223,7 @@ public class DetailDeviceFragment extends Fragment {
             Log.d("highTemp", String.valueOf(highTemp));
         } else {
             history.add(device);
-            saveHistory(history);
+//            saveHistory(history);
             historyAdapter.notifyItemInserted(history.size());
             cancelWarning();
         }
@@ -238,23 +240,18 @@ public class DetailDeviceFragment extends Fragment {
 
     private void playWarningSound() {
         if (!WarningService.isRunning) {
+            if (CommonActivity.isNullOrEmpty(getActivity())) return;
             Objects.requireNonNull(getActivity()).startService(warningService);
         }
     }
 
     private void cancelWarning() {
-//        if (warningIntent == null || v == null) {
-//            return;
-//        }
-//        Objects.requireNonNull(getActivity()).stopService(warningIntent);
         if (v != null) {
             v.cancel();
         }
         mBinding.txtHumanTemp.clearAnimation();
         mBinding.btnWarning.clearAnimation();
         mBinding.btnWarning.setVisibility(View.GONE);
-//        Toast.makeText(getActivity(), "Warning Cancelled", Toast.LENGTH_LONG).show();
-//    }
         Objects.requireNonNull(getActivity()).stopService(warningService);
     }
 

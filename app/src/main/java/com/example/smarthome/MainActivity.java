@@ -4,7 +4,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
-import android.widget.Toast;
 
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
         FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(MainActivity.this, instanceIdResult -> {
             String newToken = instanceIdResult.getToken();
             Log.d("token", newToken);
-            Toast.makeText(MainActivity.this, newToken, Toast.LENGTH_SHORT).show();
+//            Toast.makeText(MainActivity.this, newToken, Toast.LENGTH_SHORT).show();
         });
 
         toolbar = findViewById(R.id.toolBar);
@@ -77,6 +76,17 @@ public class MainActivity extends AppCompatActivity {
 //            return false;
 //        }
 //    };
+
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
 
     @Override
     public boolean onSupportNavigateUp() {

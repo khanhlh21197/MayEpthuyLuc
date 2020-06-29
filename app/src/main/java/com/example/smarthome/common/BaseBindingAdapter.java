@@ -24,12 +24,18 @@ import com.example.smarthome.MainActivity;
 import com.example.smarthome.R;
 import com.example.smarthome.ui.device.DetailDeviceFragment;
 import com.example.smarthome.ui.device.model.Device;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.Random;
 
 public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapter.ViewHolder> {
     private static final int EMPTY_VIEW = 10;
+    private static final int MAX_IMAGE_NUM = 22;
+    private static final String RESTAURANT_URL_FMT = "https://storage.googleapis.com/firestorequickstarts.appspot.com/food_%d.png";
 
     private List<T> data;
     private LayoutInflater inflater;
@@ -37,6 +43,7 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
     int resId;
     private OnItemClickListener<T> onItemClickListener;
     private Context mContext;
+    private FirebaseStorage mStorage;
 
     public void setOnItemClickListener(OnItemClickListener<T> onItemClickListener) {
         this.onItemClickListener = onItemClickListener;
@@ -101,6 +108,18 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
                         holder.itemView.findViewById(R.id.imgWarning).setVisibility(View.GONE);
                     }
                 }
+                if (!CommonActivity.isNullOrEmpty(device.getPicture())) {
+                    mStorage = FirebaseStorage.getInstance();
+                    StorageReference picture = mStorage.getReferenceFromUrl(device.getPicture());
+                    picture.getDownloadUrl().addOnCompleteListener(task -> {
+//                        Glide.with(mContext)
+//                                .load(getRandomImageUrl(new Random()))
+//                                .into((ImageView) holder.itemView.findViewById(R.id.imgDevice));
+                    });
+                }
+//                Glide.with(mContext)
+//                        .load(getRandomImageUrl(new Random()))
+//                        .into((ImageView) holder.itemView.findViewById(R.id.imgDevice));
             } catch (NumberFormatException e) {
                 e.printStackTrace();
             }
@@ -183,6 +202,13 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
         void onBtnEditClick(T item, int position);
 
         void onItemLongClick(T item);
+    }
+
+    private static String getRandomImageUrl(Random random) {
+        // Integer between 1 and MAX_IMAGE_NUM (inclusive)
+        int id = random.nextInt(MAX_IMAGE_NUM) + 1;
+
+        return String.format(Locale.getDefault(), RESTAURANT_URL_FMT, id);
     }
 }
 

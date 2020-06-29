@@ -58,10 +58,25 @@ public class Device implements Serializable {
     private String nO;
     @PropertyName("total")
     private String total;
-    @PropertyName("high_temp")
+    @PropertyName("highTemp")
     private String highTemp;
     @PropertyName("time")
     private String time;
+    @PropertyName("picture")
+    @Expose
+    private String picture;
+    private String temp;
+
+    public String getPicture() {
+        return picture;
+    }
+
+    public void setPicture(String picture) {
+        this.picture = picture;
+    }
+
+    public void loadPicture(String picture) {
+    }
 
     public String getTotal() {
         return total;
@@ -135,6 +150,10 @@ public class Device implements Serializable {
 
     public String getNO() {
         return nO;
+    }
+
+    public String getTemp() {
+        return nO + " " + (char) 0x00B0 + "C";
     }
 
     public void setNO(String nO) {

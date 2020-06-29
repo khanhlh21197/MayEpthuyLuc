@@ -191,22 +191,21 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
             getData(dataSnapshot, devices -> {
                 if (devices != null) {
                     for (Device device : devices) {
-                        if (idDevice.contains(device.getId())) {
-                            devicesOfUser.add(device);
+                        if (CommonActivity.isNullOrEmpty(idDevice)) {
+                            viewEmpty();
+                        } else {
+                            viewEmpty();
+                            if (idDevice.contains(device.getId())) {
+                                devicesOfUser.add(device);
+                            }
                         }
                     }
                     try {
                         if (!CommonActivity.isNullOrEmpty(devicesOfUser)) {
-                            mainFragmentBinding.listDevice.setVisibility(View.VISIBLE);
-                            mainFragmentBinding.tvEmpty.setVisibility(View.GONE);
-                            mainFragmentBinding.tvObserve.setVisibility(View.VISIBLE);
-                            mainFragmentBinding.switchObserve.setVisibility(View.VISIBLE);
+                            viewList();
                             adapter.setData(devicesOfUser);
                         } else {
-                            mainFragmentBinding.listDevice.setVisibility(View.GONE);
-                            mainFragmentBinding.tvEmpty.setVisibility(View.VISIBLE);
-                            mainFragmentBinding.tvObserve.setVisibility(View.GONE);
-                            mainFragmentBinding.switchObserve.setVisibility(View.GONE);
+                            viewEmpty();
                         }
 //                        startService();
                     } catch (NullPointerException e) {
@@ -215,6 +214,20 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
                 }
             });
         });
+    }
+
+    private void viewEmpty() {
+        mainFragmentBinding.listDevice.setVisibility(View.GONE);
+        mainFragmentBinding.tvEmpty.setVisibility(View.VISIBLE);
+        mainFragmentBinding.tvObserve.setVisibility(View.GONE);
+        mainFragmentBinding.switchObserve.setVisibility(View.GONE);
+    }
+
+    private void viewList() {
+        mainFragmentBinding.listDevice.setVisibility(View.VISIBLE);
+        mainFragmentBinding.tvEmpty.setVisibility(View.GONE);
+        mainFragmentBinding.tvObserve.setVisibility(View.VISIBLE);
+        mainFragmentBinding.switchObserve.setVisibility(View.VISIBLE);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)

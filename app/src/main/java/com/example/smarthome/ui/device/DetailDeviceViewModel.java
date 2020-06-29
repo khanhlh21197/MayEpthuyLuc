@@ -28,7 +28,7 @@ public class DetailDeviceViewModel extends ViewModel {
         return dataSnapshotMutableLiveData;
     }
 
-    private void getDevice(FireBaseCallBack<DataSnapshot> fireBaseCallBack){
+    private void getDevice(FireBaseCallBack<DataSnapshot> fireBaseCallBack) {
         valueEventListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -42,7 +42,7 @@ public class DetailDeviceViewModel extends ViewModel {
         };
     }
 
-    public MutableLiveData<DataSnapshot> onTemperatureChange(int indexOfDevice){
+    public MutableLiveData<DataSnapshot> onTemperatureChange(int indexOfDevice) {
         MutableLiveData<DataSnapshot> temp = new MutableLiveData<>();
         deviceRef.child(String.valueOf(indexOfDevice)).child("NO").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -58,22 +58,23 @@ public class DetailDeviceViewModel extends ViewModel {
         return temp;
     }
 
-    void setNG(int indexOfDevice, String ng){
+    void setNG(int indexOfDevice, String ng) {
         deviceRef.child(String.valueOf(indexOfDevice)).child("NG").setValue(ng);
     }
 
-    public void setName(int indexOfDevice, String name){
+    public void setName(int indexOfDevice, String name) {
         deviceRef.child(String.valueOf(indexOfDevice)).child("name").setValue(name);
     }
 
-    void setTotal(int indexOfDevice, String total){
+    void setTotal(int indexOfDevice, String total) {
         deviceRef.child(String.valueOf(indexOfDevice)).child("total").setValue(total);
     }
-    void setNumberOfHighTemp(int indexOfDevice, String number){
-        deviceRef.child(String.valueOf(indexOfDevice)).child("high_temp").setValue(number);
+
+    void setNumberOfHighTemp(int indexOfDevice, String number) {
+        deviceRef.child(String.valueOf(indexOfDevice)).child("highTemp").setValue(number);
     }
 
-    void removeAllListeners(){
+    void removeAllListeners() {
         deviceRef.removeEventListener(valueEventListener);
     }
 }
