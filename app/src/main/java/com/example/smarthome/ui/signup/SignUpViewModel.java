@@ -11,10 +11,12 @@ import androidx.lifecycle.ViewModel;
 import com.example.smarthome.common.CommonActivity;
 import com.example.smarthome.ui.login.User;
 import com.example.smarthome.utils.Result;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SignUpViewModel extends ViewModel {
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -33,44 +35,90 @@ public class SignUpViewModel extends ViewModel {
 
     public void onClick(View v) {
         User user = new User(email.getValue(), password.getValue());
-        if (validate(user)) {
-            String childId = userRef.push().getKey();
-            if (childId != null) {
-                userRef.child(childId).setValue(user.toMap(), (databaseError, databaseReference) -> {
-                    Log.d("onCreate", "success");
-                    Log.d("key", childId);
-                });
-            }
-        }
-    }
-
-    private boolean validate(User user) {
         String message = "";
         if (CommonActivity.isNullOrEmpty(email)) {
             result.onFailure("Vui lòng nhập Email hoặc tên tài khoản!");
-            return false;
         } else if (!CommonActivity.isNullOrEmpty(password.getValue())
                 && password.getValue().length() < 5) {
             message = "Mật khẩu phải lớn hơn 5 kí tự!";
             result.onFailure(message);
-            return false;
         } else if (CommonActivity.isNullOrEmpty(rePassword.getValue())) {
             message = "Vui lòng nhập lại mật khẩu!";
             result.onFailure(message);
-            return false;
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
                 && !Objects.equals(rePassword.getValue(), password.getValue())) {
             message = "Nhập lại password chưa chính xác!";
             result.onFailure(message);
-            return false;
         } else if (!CommonActivity.isNullOrEmpty(email.getValue())
-                && Objects.requireNonNull(email.getValue()).matches(String.valueOf(Patterns.EMAIL_ADDRESS))) {
+                && (!Objects.requireNonNull(email.getValue()).matches(String.valueOf(Patterns.EMAIL_ADDRESS)))) {
             message = "Email chưa đúng định dạng!";
             result.onFailure(message);
-            return false;
         } else {
-            result.onSuccess(user, "Đăng ký thành công!");
-            return true;
+            FirebaseAuth.getInstance()
+                    .createUserWithEmailAndPassword(Objects.requireNonNull(email.getValue()),
+                            Objects.requireNonNull(password.getValue()))
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            String childId = "";
+                            if (!CommonActivity.isNullOrEmpty(FirebaseAuth.getInstance().getCurrentUser())) {
+                                childId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                                String finalChildId = childId;
+                                userRef.child(childId).setValue(user.toMap(), (databaseError, databaseReference) -> {
+                                    if (databaseError != null) {
+                                        Log.d("onError", databaseError.toString());
+                                        return;
+                                    }
+                                    Log.d("onCreate", "success");
+                                    Log.d("key", finalChildId);
+                                });
+                            }
+                            result.onSuccess(user, "Đăng ký thành công!");
+                        } else {
+                            result.onFailure("Tài khoản đã tồn tại!");
+                        }
+                    });
         }
+    }
+
+    private boolean validate(User user) {
+        AtomicBoolean success = new AtomicBoolean(false);
+        String message = "";
+        if (CommonActivity.isNullOrEmpty(email)) {
+            result.onFailure("Vui lòng nhập Email hoặc tên tài khoản!");
+            success.set(false);
+        } else if (!CommonActivity.isNullOrEmpty(password.getValue())
+                && password.getValue().length() < 5) {
+            message = "Mật khẩu phải lớn hơn 5 kí tự!";
+            result.onFailure(message);
+            success.set(false);
+        } else if (CommonActivity.isNullOrEmpty(rePassword.getValue())) {
+            message = "Vui lòng nhập lại mật khẩu!";
+            result.onFailure(message);
+            success.set(false);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
+                && !Objects.equals(rePassword.getValue(), password.getValue())) {
+            message = "Nhập lại password chưa chính xác!";
+            result.onFailure(message);
+            success.set(false);
+        } else if (!CommonActivity.isNullOrEmpty(email.getValue())
+                && (!Objects.requireNonNull(email.getValue()).matches(String.valueOf(Patterns.EMAIL_ADDRESS)))) {
+            message = "Email chưa đúng định dạng!";
+            result.onFailure(message);
+            success.set(false);
+        } else {
+            FirebaseAuth.getInstance()
+                    .createUserWithEmailAndPassword(Objects.requireNonNull(email.getValue()),
+                            Objects.requireNonNull(password.getValue()))
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            success.set(true);
+                            result.onSuccess(user, "Đăng ký thành công!");
+                        } else {
+                            success.set(false);
+                            result.onFailure("Tài khoản đã tồn tại!");
+                        }
+                    });
+        }
+        return success.get();
     }
 }

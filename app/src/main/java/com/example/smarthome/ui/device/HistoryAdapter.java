@@ -13,6 +13,7 @@ import androidx.annotation.RequiresApi;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.smarthome.R;
+import com.example.smarthome.common.CommonActivity;
 import com.example.smarthome.ui.device.model.Device;
 
 import java.util.ArrayList;
@@ -45,6 +46,8 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
         holder.tvTime.setText(device.getTime());
         holder.tvTemperature.setText("Nhiệt độ : " + device.getNO() + " độ C");
         try {
+            if (CommonActivity.isNullOrEmpty(device.getNG()) || CommonActivity.isNullOrEmpty(device.getNO()))
+                return;
             if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
                 holder.tvTemperature.setTextColor(context.getResources().getColor(R.color.red));
                 holder.tvTime.setTextColor(context.getResources().getColor(R.color.red));

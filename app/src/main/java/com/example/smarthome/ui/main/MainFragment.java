@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -147,7 +148,12 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
             stopService();
         }
         mainFragmentBinding.switchObserve.setOnCheckedChangeListener((buttonView, isChecked) -> {
-
+            mainFragmentBinding.turningSwitch.setVisibility(View.VISIBLE);
+            mainFragmentBinding.switchObserve.setVisibility(View.GONE);
+            new Handler().postDelayed(() -> {
+                mainFragmentBinding.turningSwitch.setVisibility(View.GONE);
+                mainFragmentBinding.switchObserve.setVisibility(View.VISIBLE);
+            }, 2000);
             boolean switchStatus = mainFragmentBinding.switchObserve.isChecked();
 
             @SuppressLint("CommitPrefEdits") SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -196,6 +202,7 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
                         } else {
                             viewEmpty();
                             if (idDevice.contains(device.getId())) {
+                                device.setPosition(String.valueOf(devices.indexOf(device)));
                                 devicesOfUser.add(device);
                             }
                         }
@@ -362,7 +369,7 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
         alert.setPositiveButton(getString(R.string.ok), (dialog, which) -> {
             if (!CommonActivity.isNullOrEmpty(edtDeviceName.getText().toString())) {
                 device.setName(edtDeviceName.getText().toString());
-                viewModel.setName(indexOfDevice, device.getName());
+                viewModel.setName(Integer.parseInt(device.getPosition()), device.getName());
                 txtWarning.setVisibility(View.GONE);
             } else {
                 txtWarning.setVisibility(View.VISIBLE);

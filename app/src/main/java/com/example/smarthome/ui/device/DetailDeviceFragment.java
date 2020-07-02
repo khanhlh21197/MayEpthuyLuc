@@ -210,6 +210,8 @@ public class DetailDeviceFragment extends Fragment {
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void compareTemp() {
+        if (CommonActivity.isNullOrEmpty(device.getNO()) || CommonActivity.isNullOrEmpty(device.getNG()))
+            return;
         if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
             history.add(0, device);
 //            saveHistory(history);

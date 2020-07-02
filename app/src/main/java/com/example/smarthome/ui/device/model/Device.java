@@ -66,6 +66,15 @@ public class Device implements Serializable {
     @Expose
     private String picture;
     private String temp;
+    private String position;
+
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
+    }
 
     public String getPicture() {
         return picture;
@@ -153,7 +162,10 @@ public class Device implements Serializable {
     }
 
     public String getTemp() {
-        return nO + " " + (char) 0x00B0 + "C";
+        if (nO != null) {
+            return nO + " " + (char) 0x00B0 + "C";
+        }
+        return "";
     }
 
     public void setNO(String nO) {
@@ -189,6 +201,7 @@ public class Device implements Serializable {
 
     public String getAverageND() {
         int sum = 0;
+        if (nD == null) return "";
         String[] arrayND = nD.split("&");
         for (String c : arrayND) {
             sum += Integer.parseInt(c);
