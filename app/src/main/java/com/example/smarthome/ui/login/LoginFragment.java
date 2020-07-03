@@ -144,8 +144,7 @@ public class LoginFragment extends Fragment {
                                 Log.d("isLoginSuccess", user.getUid());
                                 this.user = user;
                                 idDevice = user.getIdDevice();
-                                CommonActivity.showConfirmValidate(mActivity, "Đăng nhập thành công với " + inputUser.getEmail());
-                                onLoginSuccess();
+                                onLoginSuccess(inputUser);
                                 break;
                             }
                         }
@@ -234,7 +233,8 @@ public class LoginFragment extends Fragment {
         }
     }
 
-    private void onLoginSuccess() {
+    private void onLoginSuccess(User inputUser) {
+        Toast.makeText(mActivity, "Đăng nhập thành công với " + inputUser.getEmail(), Toast.LENGTH_SHORT).show();
         if (binding.saveUser.isChecked()) {
             String email = user.getEmail();
             String password = user.getPassword();

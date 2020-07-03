@@ -56,7 +56,7 @@ public class TempMonitoringService extends LifecycleService implements Serializa
     }
 
     @Override
-    public IBinder onBind(Intent intent) {
+    public IBinder onBind(@NonNull Intent intent) {
         super.onBind(intent);
         return null;
     }
@@ -89,7 +89,7 @@ public class TempMonitoringService extends LifecycleService implements Serializa
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    public int onStartCommand(@NonNull Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
 
         isRunning = true;
@@ -300,23 +300,25 @@ public class TempMonitoringService extends LifecycleService implements Serializa
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     if (idDevice.contains(device.getId())) {
                         int index = devices.indexOf(device);
-                        deviceRef.child(String.valueOf(index)).addValueEventListener(new ValueEventListener() {
-                            @Override
-                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                Device device1 = dataSnapshot.getValue(Device.class);
-                                if (device1 == null) return;
-                                if (CommonActivity.isNullOrEmpty(device1.getNO()) || CommonActivity.isNullOrEmpty(device1.getNG()))
-                                    return;
-                                if (Double.parseDouble(device1.getNO()) > Double.parseDouble(device1.getNG())) {
-                                    createNotification(device1, index);
-                                }
-                            }
+                        deviceRef.child(String.valueOf(index)).
+                                child("NO")
+                                .addValueEventListener(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                        Device device1 = dataSnapshot.getValue(Device.class);
+                                        if (device1 == null) return;
+                                        if (CommonActivity.isNullOrEmpty(device1.getNO()) || CommonActivity.isNullOrEmpty(device1.getNG()))
+                                            return;
+                                        if (Double.parseDouble(device1.getNO()) > Double.parseDouble(device1.getNG())) {
+                                            createNotification(device1, index);
+                                        }
+                                    }
 
-                            @Override
-                            public void onCancelled(@NonNull DatabaseError databaseError) {
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                            }
-                        });
+                                    }
+                                });
                     }
                 }
             }
