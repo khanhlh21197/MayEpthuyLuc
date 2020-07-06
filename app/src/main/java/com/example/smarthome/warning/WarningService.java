@@ -7,6 +7,7 @@ import android.os.IBinder;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
+import androidx.lifecycle.MutableLiveData;
 
 import com.example.smarthome.R;
 
@@ -18,7 +19,7 @@ public class WarningService extends Service implements MediaPlayer.OnCompletionL
      */
     public MediaPlayer mediaPlayer;
     private String fname = "warning.mp3";
-    public static boolean isRunning = false;
+    public static MutableLiveData<Boolean> isRunning = new MutableLiveData<>(false);
 
     @Nullable
     @Override
@@ -36,7 +37,7 @@ public class WarningService extends Service implements MediaPlayer.OnCompletionL
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        isRunning = true;
+        isRunning.setValue(true);
         if (!mediaPlayer.isPlaying()) {
             mediaPlayer.start();
             Log.d("mediaPlayer", "started");
@@ -46,7 +47,7 @@ public class WarningService extends Service implements MediaPlayer.OnCompletionL
 
     @Override
     public void onDestroy() {
-        isRunning = false;
+        isRunning.setValue(false);
         if (mediaPlayer.isPlaying()) {
             mediaPlayer.stop();
             Log.d("mediaPlayer", "stopped");

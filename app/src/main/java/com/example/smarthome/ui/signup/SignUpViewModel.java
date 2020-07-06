@@ -26,6 +26,7 @@ public class SignUpViewModel extends ViewModel {
     public MutableLiveData<String> email = new MutableLiveData<>();
     public MutableLiveData<String> password = new MutableLiveData<>();
     public MutableLiveData<String> rePassword = new MutableLiveData<>();
+    public MutableLiveData<Integer> loading = new MutableLiveData<>(View.GONE);
 
     private String idDevice = "HHA000001, HHA000002, HHA000003";
 
@@ -54,10 +55,12 @@ public class SignUpViewModel extends ViewModel {
             message = "Email chưa đúng định dạng!";
             result.onFailure(message);
         } else {
+            loading.setValue(View.VISIBLE);
             FirebaseAuth.getInstance()
                     .createUserWithEmailAndPassword(Objects.requireNonNull(email.getValue()),
                             Objects.requireNonNull(password.getValue()))
                     .addOnCompleteListener(task -> {
+                        loading.setValue(View.GONE);
                         if (task.isSuccessful()) {
                             String childId = "";
                             if (!CommonActivity.isNullOrEmpty(FirebaseAuth.getInstance().getCurrentUser())) {

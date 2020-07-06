@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
@@ -21,6 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.lifecycle.LifecycleService;
+import androidx.lifecycle.MutableLiveData;
 
 import com.example.smarthome.MainActivity;
 import com.example.smarthome.R;
@@ -39,13 +41,18 @@ import com.google.firebase.database.ValueEventListener;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import io.reactivex.Observable;
+
 public class TempMonitoringService extends LifecycleService implements Serializable {
     public static final String EXTRA_BUTTON_CLICKED = "EXTRA_BUTTON_CLICKED";
-    public static boolean isRunning = false;
+    public static MutableLiveData<Boolean> isRunning = new MutableLiveData<>(false);
     private Timer timer;
     public int counter = 0;
     public static Vibrator v;
@@ -92,14 +99,15 @@ public class TempMonitoringService extends LifecycleService implements Serializa
     public int onStartCommand(@NonNull Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
 
-        isRunning = true;
+        isRunning.setValue(true);
 
         initMedia();
 
         if (!CommonActivity.isNullOrEmpty(intent)
                 && !CommonActivity.isNullOrEmpty(intent.getExtras())
                 && !CommonActivity.isNullOrEmpty(intent.getExtras().getString("idDevice"))) {
-            String idDevice = Objects.requireNonNull(intent.getExtras()).getString("idDevice");
+            String idDevice = "";
+            idDevice = Objects.requireNonNull(intent.getExtras()).getString("idDevice");
             Log.v("TempMonitoringService", "onStartCommand");
             startTimer();
 //            MainViewModel viewModel = new MainViewModel();
@@ -137,7 +145,7 @@ public class TempMonitoringService extends LifecycleService implements Serializa
             v.cancel();
         }
 
-        isRunning = false;
+        isRunning.setValue(false);
 
         stopService(warningService);
 
@@ -215,9 +223,11 @@ public class TempMonitoringService extends LifecycleService implements Serializa
     }
 
     private void startMedia() {
-        if (!WarningService.isRunning) {
-            startService(warningService);
-        }
+        WarningService.isRunning.observe(this, aBoolean -> {
+            if (!aBoolean) {
+                new Handler().postDelayed(() -> startService(warningService), 3000);
+            }
+        });
     }
 
     public static void stopMedia() {
@@ -285,44 +295,111 @@ public class TempMonitoringService extends LifecycleService implements Serializa
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference deviceRef = database.getReference("devices");
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    @SuppressLint("CheckResult")
     private void observeDevice(String idDevice) {
-        getFBData(item -> {
-            GenericTypeIndicator<ArrayList<Device>> t = new GenericTypeIndicator<ArrayList<Device>>() {
-            };
-            ArrayList<Device> devices = item.getValue(t);
+        getData().subscribe(devices -> {
             observer(devices, idDevice);
         });
+//        getFBData(item -> {
+//            GenericTypeIndicator<ArrayList<Device>> t = new GenericTypeIndicator<ArrayList<Device>>() {
+//            };
+//            ArrayList<Device> devices = item.getValue(t);
+//            observer(devices, idDevice);
+//        });
     }
 
+    private void test(ArrayList<Device> devices, String idDevice) {
+        List<String> ids = Arrays.asList(idDevice.split(","));
+        for (String id : ids) {
+            if (!id.equals("")) {
+                database.getReference(id).addValueEventListener(new ValueEventListener() {
+                    @RequiresApi(api = Build.VERSION_CODES.O)
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        Device device1 = dataSnapshot.getValue(Device.class);
+                        if (device1 == null) return;
+                        if (CommonActivity.isNullOrEmpty(device1.getNO()) || CommonActivity.isNullOrEmpty(device1.getNG()))
+                            return;
+                        if (Double.parseDouble(device1.getNO()) > Double.parseDouble(device1.getNG())) {
+                            createNotification(device1, ids.indexOf(id));
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+            }
+        }
+    }
+
+    @SuppressLint("CheckResult")
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void observer(ArrayList<Device> devices, String idDevice) {
+        HashSet<String> idSet = new HashSet<>(Arrays.asList(idDevice.split(",")));
         if (devices != null) {
             for (Device device : devices) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    if (idDevice.contains(device.getId())) {
-                        int index = devices.indexOf(device);
-                        deviceRef.child(String.valueOf(index)).
-                                child("NO")
-                                .addValueEventListener(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                                        Device device1 = dataSnapshot.getValue(Device.class);
-                                        if (device1 == null) return;
-                                        if (CommonActivity.isNullOrEmpty(device1.getNO()) || CommonActivity.isNullOrEmpty(device1.getNG()))
-                                            return;
-                                        if (Double.parseDouble(device1.getNO()) > Double.parseDouble(device1.getNG())) {
-                                            createNotification(device1, index);
-                                        }
-                                    }
-
-                                    @Override
-                                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                                    }
-                                });
-                    }
+                if (idSet.contains(device.getId())) {
+                    int index = devices.indexOf(device);
+                    followChild(index).subscribe(device1 -> {
+                        if (CommonActivity.isNullOrEmpty(device1.getNO())
+                                || CommonActivity.isNullOrEmpty(device1.getNG()))
+                            return;
+                        if (Double.parseDouble(device1.getNO()) > Double.parseDouble(device1.getNG())) {
+                            createNotification(device1, index);
+                        }
+                    });
                 }
             }
         }
+//        if (devices != null) {
+//            for (Device device : devices) {
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                    if (idDevice.contains(device.getId())) {
+//                        int index = devices.indexOf(device);
+//                        deviceRef.child(String.valueOf(index))
+//                                .addValueEventListener(new ValueEventListener() {
+//                                    @Override
+//                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                                        Device device1 = dataSnapshot.getValue(Device.class);
+//                                        if (device1 == null) return;
+//                                        if (CommonActivity.isNullOrEmpty(device1.getNO()) || CommonActivity.isNullOrEmpty(device1.getNG()))
+//                                            return;
+//                                        if (Double.parseDouble(device1.getNO()) > Double.parseDouble(device1.getNG())) {
+//                                            createNotification(device1, index);
+//                                        }
+//                                    }
+//
+//                                    @Override
+//                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//                                    }
+//                                });
+//                    }
+//                }
+//            }
+//        }
+    }
+
+    private Observable<Device> followChild(int index) {
+        return Observable.create(emitter -> {
+            deviceRef.child(String.valueOf(index))
+                    .addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            Device device1 = dataSnapshot.getValue(Device.class);
+                            if (device1 == null) return;
+                            emitter.onNext(device1);
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+        });
     }
 
     private void getFBData(FireBaseCallBack<DataSnapshot> fireBaseCallBack) {
@@ -336,6 +413,25 @@ public class TempMonitoringService extends LifecycleService implements Serializa
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
+        });
+    }
+
+    private Observable<ArrayList<Device>> getData() {
+        return Observable.create(emitter -> {
+            deviceRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    GenericTypeIndicator<ArrayList<Device>> t = new GenericTypeIndicator<ArrayList<Device>>() {
+                    };
+                    ArrayList<Device> devices = dataSnapshot.getValue(t);
+                    emitter.onNext(devices);
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
         });
     }
 }

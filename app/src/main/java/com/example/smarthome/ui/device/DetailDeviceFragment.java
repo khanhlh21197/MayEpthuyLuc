@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.util.Log;
@@ -35,7 +36,6 @@ import com.example.smarthome.databinding.DetailDeviceFragmentBinding;
 import com.example.smarthome.serializer.ObjectSerializer;
 import com.example.smarthome.ui.device.model.Device;
 import com.example.smarthome.warning.WarningService;
-import com.google.firebase.database.GenericTypeIndicator;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -123,6 +123,7 @@ public class DetailDeviceFragment extends Fragment {
         }
     }
 
+    @SuppressLint("CheckResult")
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void unit() {
         warningService = new Intent(getActivity(), WarningService.class);
@@ -130,36 +131,61 @@ public class DetailDeviceFragment extends Fragment {
         viewModel = ViewModelProviders
                 .of(Objects.requireNonNull(getActivity()))
                 .get(DetailDeviceViewModel.class);
+//        viewModel.getAllDevice().observe(getActivity(), dataSnapshot -> {
+//            ArrayList<Device> devices;
+//            GenericTypeIndicator<ArrayList<Device>> t =
+//                    new GenericTypeIndicator<ArrayList<Device>>() {
+//                    };
+//            devices = dataSnapshot.getValue(t);
+//            if (!CommonActivity.isNullOrEmpty(devices)) {
+//                for (Device device : devices) {
+//                    if (device.getId().equals(DetailDeviceFragment.this.device.getId())) {
+//                        indexOfDevice = devices.indexOf(device);
+//                        liveData.setValue(device);
+//                        mBinding.setDetailDevice(device);
+//                        @SuppressLint("SimpleDateFormat") String timeStamp
+//                                = new SimpleDateFormat("dd-MM-yyyy  HH:mm:ss").format(Calendar.getInstance().getTime());
+//                        device.setTime(timeStamp);
+//                        break;
+//                    }
+//                }
+//            }
+//        });
 
-        viewModel.getAllDevice().observe(getActivity(), dataSnapshot -> {
-            ArrayList<Device> devices;
-            GenericTypeIndicator<ArrayList<Device>> t =
-                    new GenericTypeIndicator<ArrayList<Device>>() {
-                    };
-            devices = dataSnapshot.getValue(t);
+        viewModel.getAllDevice().subscribe(devices -> {
             if (!CommonActivity.isNullOrEmpty(devices)) {
                 for (Device device : devices) {
                     if (device.getId().equals(DetailDeviceFragment.this.device.getId())) {
                         indexOfDevice = devices.indexOf(device);
-                        liveData.setValue(device);
+//                        liveData.setValue(device);
                         mBinding.setDetailDevice(device);
                         @SuppressLint("SimpleDateFormat") String timeStamp
                                 = new SimpleDateFormat("dd-MM-yyyy  HH:mm:ss").format(Calendar.getInstance().getTime());
                         device.setTime(timeStamp);
+                        try {
+                            compareTemp();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                         break;
                     }
                 }
             }
         });
 
-        observeTemperature();
+//        observeTemperature();
 
         mBinding.btnThreshold.setOnClickListener(v -> {
             String ng = mBinding.edtThreshold.getText().toString().trim();
             if (!CommonActivity.isNullOrEmpty(ng)) {
-                viewModel.setNG(indexOfDevice, ng);
-                mBinding.edtThreshold.setText("");
-                Toast.makeText(getActivity(), "Cài đặt ngưỡng thành công!", Toast.LENGTH_SHORT).show();
+                viewModel.setNG(indexOfDevice, ng).subscribe(s -> {
+                    if (s.equals("Success")) {
+                        mBinding.edtThreshold.setText("");
+                        Toast.makeText(getActivity(), "Cài đặt ngưỡng thành công!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getActivity(), "Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
+                    }
+                });
             } else {
                 CommonActivity.showConfirmValidate(getActivity(), "Vui lòng nhập giá trị ngưỡng");
             }
@@ -184,56 +210,61 @@ public class DetailDeviceFragment extends Fragment {
 //        });
     }
 
-    @SuppressLint({"NewApi", "SetTextI18n"})
-    private void observeTemperature() {
-        liveData.observe(Objects.requireNonNull(getActivity()), device -> {
-            mBinding.setDetailDevice(device);
-            @SuppressLint("SimpleDateFormat") String timeStamp
-                    = new SimpleDateFormat("dd-MM-yyyy  HH:mm:ss").format(Calendar.getInstance().getTime());
-            device.setTime(timeStamp);
-            try {
-                compareTemp();
-//                if (!CommonActivity.isNullOrEmpty(history)) {
-//                    if (!device.getNO().equals(history.get(history.size() - 1).getNO())
-//                            && !device.getNO().equals(history.get(0).getNO())) {
-//                        compareTemp();
-//                    }
-//                } else {
-//                    compareTemp();
-//                }
-//                mBinding.tvTotal.setText("Tổng số người đo : " + history.size());
-            } catch (IndexOutOfBoundsException | NumberFormatException e) {
-                e.printStackTrace();
+//    @SuppressLint({"NewApi", "SetTextI18n"})
+//    private void observeTemperature() {
+//        liveData.observe(Objects.requireNonNull(getActivity()), device -> {
+//            mBinding.setDetailDevice(device);
+//            @SuppressLint("SimpleDateFormat") String timeStamp
+//                    = new SimpleDateFormat("dd-MM-yyyy  HH:mm:ss").format(Calendar.getInstance().getTime());
+//            device.setTime(timeStamp);
+//            try {
+//                compareTemp();
+////                if (!CommonActivity.isNullOrEmpty(history)) {
+////                    if (!device.getNO().equals(history.get(history.size() - 1).getNO())
+////                            && !device.getNO().equals(history.get(0).getNO())) {
+////                        compareTemp();
+////                    }
+////                } else {
+////                    compareTemp();
+////                }
+////                mBinding.tvTotal.setText("Tổng số người đo : " + history.size());
+//            } catch (IndexOutOfBoundsException | NumberFormatException e) {
+//                e.printStackTrace();
+//            }
+//        });
+//    }
+
+    @SuppressLint("CheckResult")
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void compareTemp() {
+        viewModel.observerDevice(indexOfDevice).subscribe(device1 -> {
+            if (CommonActivity.isNullOrEmpty(device1.getNO()) || CommonActivity.isNullOrEmpty(device1.getNG()))
+                return;
+            if (Double.parseDouble(device1.getNO()) > Double.parseDouble(device1.getNG())) {
+                history.add(0, device1);
+//            saveHistory(history);
+                historyAdapter.notifyItemInserted(0);
+                mBinding.listHistory.smoothScrollToPosition(0);
+                startWarning(device1.getNG());
+                mBinding.btnWarning.setOnClickListener(v -> {
+                    cancelWarning();
+                });
+                Log.d("history", String.valueOf(history.size()));
+                Log.d("highTemp", String.valueOf(highTemp));
+            } else {
+                history.add(device1);
+//            saveHistory(history);
+                historyAdapter.notifyItemInserted(history.size());
+                cancelWarning();
             }
         });
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private void compareTemp() {
-        if (CommonActivity.isNullOrEmpty(device.getNO()) || CommonActivity.isNullOrEmpty(device.getNG()))
-            return;
-        if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
-            history.add(0, device);
-//            saveHistory(history);
-            historyAdapter.notifyItemInserted(0);
-            mBinding.listHistory.smoothScrollToPosition(0);
-            startWarning(device.getNG());
-            mBinding.btnWarning.setOnClickListener(v -> {
-                cancelWarning();
-            });
-            Log.d("history", String.valueOf(history.size()));
-            Log.d("highTemp", String.valueOf(highTemp));
-        } else {
-            history.add(device);
-//            saveHistory(history);
-            historyAdapter.notifyItemInserted(history.size());
-            cancelWarning();
-        }
-    }
-
     private void startWarning(String ng) {
-        playWarningSound();
-        vibrate();
+        new Handler().postDelayed(() -> {
+            playWarningSound();
+            vibrate();
+        }, 2000);
         mBinding.txtHumanTemp.setAnimation(createFlashingAnimation());
         mBinding.btnWarning.setVisibility(View.VISIBLE);
         mBinding.btnWarning.setAnimation(createFlashingAnimation());
@@ -241,10 +272,12 @@ public class DetailDeviceFragment extends Fragment {
     }
 
     private void playWarningSound() {
-        if (!WarningService.isRunning) {
-            if (CommonActivity.isNullOrEmpty(getActivity())) return;
-            Objects.requireNonNull(getActivity()).startService(warningService);
-        }
+        WarningService.isRunning.observe(this, aBoolean -> {
+            if (!aBoolean) {
+                if (CommonActivity.isNullOrEmpty(getActivity())) return;
+                Objects.requireNonNull(getActivity()).startService(warningService);
+            }
+        });
     }
 
     private void cancelWarning() {
@@ -254,7 +287,9 @@ public class DetailDeviceFragment extends Fragment {
         mBinding.txtHumanTemp.clearAnimation();
         mBinding.btnWarning.clearAnimation();
         mBinding.btnWarning.setVisibility(View.GONE);
-        Objects.requireNonNull(getActivity()).stopService(warningService);
+        if (getActivity() != null) {
+            Objects.requireNonNull(getActivity()).stopService(warningService);
+        }
     }
 
     private void vibrate() {

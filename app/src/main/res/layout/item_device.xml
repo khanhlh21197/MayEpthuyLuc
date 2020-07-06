@@ -55,10 +55,9 @@
             android:layout_height="@dimen/_64sdp"
             android:layout_marginTop="@dimen/_8sdp"
             android:scaleType="fitXY"
-            android:src="@drawable/ic_temp"
+            android:src="@drawable/ic_battery"
+            app:layout_constraintBottom_toTopOf="@id/txtTemp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintLeft_toRightOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/llDeviceName" />
 
@@ -76,30 +75,64 @@
             app:layout_constraintTop_toBottomOf="@id/llDeviceName" />
 
         <TextView
-            android:id="@+id/txtActive"
+            android:id="@+id/txtTemp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_8sdp"
+            android:layout_marginTop="4dp"
             android:gravity="center"
             android:text="@{item_device.temp}"
             android:textColor="@color/colorPrimary"
-            android:textSize="@dimen/_12ssp"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:textSize="@dimen/_16ssp"
+            app:layout_constraintBottom_toTopOf="@id/llActive"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toLeftOf="@id/txtBattery"
             app:layout_constraintTop_toBottomOf="@id/imgDevice"
-            tools:text="Đang hoạt động" />
+            tools:text="38 độ C" />
 
-        <TextView
-            android:id="@+id/txtBattery"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/llActive"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/_8sdp"
-            android:textSize="@dimen/_12ssp"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="2dp"
+            android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toRightOf="@id/txtActive"
-            app:layout_constraintRight_toRightOf="parent"
-            tools:text="% pin" />
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/txtTemp">
+
+            <com.suke.widget.SwitchButton
+                android:id="@+id/onOffSwitch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:sb_checked="true" />
+
+            <RelativeLayout
+                android:id="@+id/rlActive"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:id="@+id/txtOn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="8dp"
+                    android:gravity="center"
+                    android:text="@string/on" />
+
+                <TextView
+                    android:id="@+id/txtOff"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="8dp"
+                    android:gravity="center"
+                    android:text="@string/off"
+                    android:visibility="gone" />
+
+            </RelativeLayout>
+
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

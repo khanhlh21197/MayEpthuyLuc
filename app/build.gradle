@@ -77,6 +77,8 @@ dependencies {
     implementation 'com.firebaseui:firebase-ui-auth:6.2.1'
 //Firebase Messaging library for Sending push Notifications
     implementation 'com.google.firebase:firebase-messaging:20.2.0'
+    //switch button
+    implementation 'com.github.zcweng:switch-button:0.0.3@aar'
 
     //scarlet
 //    implementation 'com.tinder.scarlet:scarlet:0.1.10'

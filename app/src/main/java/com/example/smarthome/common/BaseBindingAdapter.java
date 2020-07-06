@@ -26,6 +26,7 @@ import com.example.smarthome.ui.device.DetailDeviceFragment;
 import com.example.smarthome.ui.device.model.Device;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.suke.widget.SwitchButton;
 
 import java.util.List;
 import java.util.Locale;
@@ -94,8 +95,17 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
         if (item instanceof Device) {
             Device device = (Device) item;
             try {
-                holder.itemView.findViewById(R.id.imgEdit).setOnClickListener(v -> {
-                    onItemClickListener.onBtnEditClick(item, position);
+                holder.itemView.findViewById(R.id.imgEdit).setOnClickListener(v
+                        -> onItemClickListener.onBtnEditClick(item, position));
+                SwitchButton switchButton = holder.itemView.findViewById(R.id.onOffSwitch);
+                switchButton.setOnCheckedChangeListener((view, isChecked) -> {
+                    if (isChecked) {
+                        holder.itemView.findViewById(R.id.txtOn).setVisibility(View.VISIBLE);
+                        holder.itemView.findViewById(R.id.txtOff).setVisibility(View.GONE);
+                    } else {
+                        holder.itemView.findViewById(R.id.txtOn).setVisibility(View.GONE);
+                        holder.itemView.findViewById(R.id.txtOff).setVisibility(View.VISIBLE);
+                    }
                 });
                 if (!CommonActivity.isNullOrEmpty(device.getNO())
                         && !CommonActivity.isNullOrEmpty(device.getNG())) {

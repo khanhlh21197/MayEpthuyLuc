@@ -273,7 +273,7 @@ public class LoginFragment extends Fragment {
                 -> Toast.makeText(mActivity, "Cancel clicked", Toast.LENGTH_SHORT).show());
 
         alert.setPositiveButton("Đồng ý", (dialog, which) -> {
-            idDevice += txtInputDevice.getText().toString();
+            idDevice += txtInputDevice.getText().toString() + ",";
             loginViewModel.updateDevice(idDevice, new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {

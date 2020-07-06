@@ -2,6 +2,7 @@ package com.example.smarthome.ui.device.model;
 
 import android.annotation.SuppressLint;
 import android.os.Build;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -67,6 +68,23 @@ public class Device implements Serializable {
     private String picture;
     private String temp;
     private String position;
+    private boolean active;
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public int visibleOn() {
+        return active ? View.VISIBLE : View.GONE;
+    }
+
+    public int visibleOff() {
+        return active ? View.GONE : View.VISIBLE;
+    }
 
     public String getPosition() {
         return position;

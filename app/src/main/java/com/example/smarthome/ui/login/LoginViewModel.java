@@ -22,6 +22,7 @@ public class LoginViewModel extends ViewModel {
 
     public MutableLiveData<String> Email = new MutableLiveData<>();
     public MutableLiveData<String> Password = new MutableLiveData<>();
+
     private User user = null;
     private String userID = "";
     private ArrayList<User> users = new ArrayList<>();

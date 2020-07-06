@@ -20,13 +20,10 @@ public class NotificationIntentService extends IntentService {
             switch (Objects.requireNonNull(intent.getAction())) {
                 case "stopWarning":
                     Handler stopWarningHandler = new Handler(Looper.getMainLooper());
-                    stopWarningHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Intent warningService
-                                    = new Intent(NotificationIntentService.this, WarningService.class);
-                            stopService(warningService);
-                        }
+                    stopWarningHandler.post(() -> {
+                        Intent warningService
+                                = new Intent(NotificationIntentService.this, WarningService.class);
+                        stopService(warningService);
                     });
                     break;
             }

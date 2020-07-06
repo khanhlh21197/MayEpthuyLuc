@@ -45,7 +45,11 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
+
+import io.reactivex.functions.Function;
 
 public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemClickListener<Device> {
     private static final String MyPREFERENCES = "MyPrefs1";
@@ -171,11 +175,17 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
     }
 
     private void startService() {
-        Objects.requireNonNull(getActivity()).startService(tempMonitoringService);
+        new Handler().postDelayed(() -> {
+            tempMonitoringService = new Intent(getActivity(), TempMonitoringService.class);
+            tempMonitoringService.putExtra("idDevice", idDevice);
+            if (getActivity() != null) {
+                Objects.requireNonNull(getActivity()).startService(tempMonitoringService);
+            }
+        }, 3000);
     }
 
     private void stopService() {
-        if (!CommonActivity.isNullOrEmpty(tempMonitoringService)) {
+        if (!CommonActivity.isNullOrEmpty(tempMonitoringService) && getActivity() != null) {
             Objects.requireNonNull(getActivity()).stopService(tempMonitoringService);
         }
     }
@@ -191,7 +201,14 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
+    @SuppressLint("CheckResult")
+    private void test() {
+        mainViewModel.test(idDevice).map((Function<Device, Object>) this::add).subscribe(o -> adapter.setData((ArrayList<Device>) o));
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void observeAllDevice() {
+//        test();
         mainViewModel.getAllDevices().observe(Objects.requireNonNull(getActivity()), dataSnapshot -> {
             ArrayList<Device> devicesOfUser = new ArrayList<>();
             getData(dataSnapshot, devices -> {
@@ -214,7 +231,7 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
                         } else {
                             viewEmpty();
                         }
-//                        startService();
+                        startService();
                     } catch (NullPointerException e) {
                         e.printStackTrace();
                     }
@@ -275,7 +292,7 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
 
         alert.setPositiveButton(getString(R.string.ok), (dialog, which) -> {
             if (txtInputDevice.getText() != null) {
-                idDevice += txtInputDevice.getText().toString();
+                idDevice += txtInputDevice.getText().toString() + ",";
                 loginViewModel.updateDevice(idDevice, new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -377,5 +394,26 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
         });
         AlertDialog dialog = alert.create();
         dialog.show();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private ArrayList<Device> add(Device device) {
+        ArrayList<Device> devices = new ArrayList<>();
+        Set<String> idSet = new HashSet<>();
+        if (idSet.add(device.getId())) {
+            devices.add(device);
+        } else {
+            devices.set((getIndex(idSet, device.getId())), device);
+        }
+        return devices;
+    }
+
+    public static int getIndex(Set<? extends Object> set, Object value) {
+        int result = 0;
+        for (Object entry : set) {
+            if (entry.equals(value)) return result;
+            result++;
+        }
+        return -1;
     }
 }
