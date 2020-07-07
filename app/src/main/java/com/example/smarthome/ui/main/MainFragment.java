@@ -86,13 +86,24 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
         getBundleData();
         mainFragmentBinding = DataBindingUtil.inflate(inflater, R.layout.main_fragment, container, false);
         unit();
+        checkService();
         onFabClicked();
-        editDeviceName();
         return mainFragmentBinding.getRoot();
     }
 
-    private void editDeviceName() {
-
+    private void checkService() {
+        if (TempMonitoringService.isRunning != null) {
+            TempMonitoringService.isRunning.observe(this, aBoolean -> {
+                if (!aBoolean) {
+                    Toast.makeText(getActivity(), getString(R.string.service_offline), Toast.LENGTH_SHORT).show();
+                    mainFragmentBinding.switchObserve.setChecked(false);
+                    mainFragmentBinding.tvObserve.setText(getString(R.string.turn_off_monitoring));
+                }
+            });
+        } else {
+            mainFragmentBinding.switchObserve.setChecked(false);
+            mainFragmentBinding.tvObserve.setText(getString(R.string.turn_off_monitoring));
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -146,11 +157,11 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
 
     private void onSwitchObserveChange() {
         mainFragmentBinding.tvObserve.setText(getString(R.string.turn_on_monitoring));
-        if (mainFragmentBinding.switchObserve.isChecked()) {
-            startService();
-        } else {
-            stopService();
-        }
+//        if (mainFragmentBinding.switchObserve.isChecked()) {
+//            startService();
+//        } else {
+//            stopService();
+//        }
         mainFragmentBinding.switchObserve.setOnCheckedChangeListener((buttonView, isChecked) -> {
             mainFragmentBinding.turningSwitch.setVisibility(View.VISIBLE);
             mainFragmentBinding.switchObserve.setVisibility(View.GONE);
@@ -175,13 +186,11 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
     }
 
     private void startService() {
-        new Handler().postDelayed(() -> {
-            tempMonitoringService = new Intent(getActivity(), TempMonitoringService.class);
-            tempMonitoringService.putExtra("idDevice", idDevice);
-            if (getActivity() != null) {
-                Objects.requireNonNull(getActivity()).startService(tempMonitoringService);
-            }
-        }, 3000);
+        tempMonitoringService = new Intent(getActivity(), TempMonitoringService.class);
+        tempMonitoringService.putExtra("idDevice", idDevice);
+        if (getActivity() != null) {
+            Objects.requireNonNull(getActivity()).startService(tempMonitoringService);
+        }
     }
 
     private void stopService() {
@@ -231,7 +240,7 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
                         } else {
                             viewEmpty();
                         }
-                        startService();
+//                        startService();
                     } catch (NullPointerException e) {
                         e.printStackTrace();
                     }

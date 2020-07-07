@@ -6,6 +6,9 @@ import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
 import com.example.smarthome.common.CommonActivity;
 import com.google.firebase.database.Exclude;
@@ -22,10 +25,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
+@Entity
 public class Device implements Serializable {
     @SerializedName("id")
     @Expose
-    private String id;
+    @PrimaryKey(autoGenerate = false)
+    @NonNull private String id;
     @SerializedName("user")
     @Expose
     private String user;
@@ -55,6 +60,7 @@ public class Device implements Serializable {
     private String nG;
     @SerializedName("NO")
     @PropertyName("NO")
+    @ColumnInfo(name = "no")
     @Expose
     private String nO;
     @PropertyName("total")
@@ -62,6 +68,7 @@ public class Device implements Serializable {
     @PropertyName("highTemp")
     private String highTemp;
     @PropertyName("time")
+    @ColumnInfo(name = "time")
     private String time;
     @PropertyName("picture")
     @Expose
@@ -84,6 +91,12 @@ public class Device implements Serializable {
 
     public int visibleOff() {
         return active ? View.GONE : View.VISIBLE;
+    }
+
+    public Device(String id, String nO, String time) {
+        this.id = id;
+        this.nO = nO;
+        this.time = time;
     }
 
     public String getPosition() {
@@ -235,6 +248,10 @@ public class Device implements Serializable {
         } else {
             return name;
         }
+    }
+
+    public void setTemp(String temp) {
+        this.temp = temp;
     }
 
     @Exclude

@@ -10,10 +10,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Build;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.VibrationEffect;
-import android.os.Vibrator;
 import android.util.Log;
 import android.widget.RemoteViews;
 
@@ -55,7 +52,6 @@ public class TempMonitoringService extends LifecycleService implements Serializa
     public static MutableLiveData<Boolean> isRunning = new MutableLiveData<>(false);
     private Timer timer;
     public int counter = 0;
-    public static Vibrator v;
     public static MediaPlayer mediaPlayer;
     public static Intent warningService;
 
@@ -141,9 +137,6 @@ public class TempMonitoringService extends LifecycleService implements Serializa
             stopForeground(1);
             stopForeground(9);
         }
-        if (v != null && v.hasVibrator()) {
-            v.cancel();
-        }
 
         isRunning.setValue(false);
 
@@ -178,6 +171,7 @@ public class TempMonitoringService extends LifecycleService implements Serializa
                 + displayName);
 
         Intent stopWarning = new Intent(this, NotificationIntentService.class);
+        stopWarning.putExtra("idNoti", idNoti);
         stopWarning.setAction("stopWarning");
 
         notificationLayout.setOnClickPendingIntent(R.id.removeWarning,
@@ -186,6 +180,10 @@ public class TempMonitoringService extends LifecycleService implements Serializa
 
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(getApplicationContext(), "notify_001");
+        //clear just on clicked
+        mBuilder.setOngoing(true);
+        mBuilder.setAutoCancel(true);
+        mBuilder.setOnlyAlertOnce(true);
         Intent ii = new Intent(getApplicationContext(), MainActivity.class);
         ii.putExtra("menuFragment", "DetailDeviceFragment");
         ii.putExtra("idDevice", device.getId());
@@ -212,7 +210,6 @@ public class TempMonitoringService extends LifecycleService implements Serializa
             mNotificationManager.notify(idNoti, mBuilder.build());
         }
         startMedia();
-        vibrate();
     }
 
     private void initMedia() {
@@ -225,7 +222,7 @@ public class TempMonitoringService extends LifecycleService implements Serializa
     private void startMedia() {
         WarningService.isRunning.observe(this, aBoolean -> {
             if (!aBoolean) {
-                new Handler().postDelayed(() -> startService(warningService), 3000);
+                startService(warningService);
             }
         });
     }
@@ -242,19 +239,6 @@ public class TempMonitoringService extends LifecycleService implements Serializa
             }
         } catch (IllegalStateException | IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    private void vibrate() {
-        v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        if (!CommonActivity.isNullOrEmpty(v)) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                v.vibrate(VibrationEffect.createOneShot(500,
-                        VibrationEffect.DEFAULT_AMPLITUDE));
-            } else {
-                //deprecated in API 26
-                v.vibrate(3000);
-            }
         }
     }
 
@@ -321,8 +305,12 @@ public class TempMonitoringService extends LifecycleService implements Serializa
                         if (device1 == null) return;
                         if (CommonActivity.isNullOrEmpty(device1.getNO()) || CommonActivity.isNullOrEmpty(device1.getNG()))
                             return;
-                        if (Double.parseDouble(device1.getNO()) > Double.parseDouble(device1.getNG())) {
-                            createNotification(device1, ids.indexOf(id));
+                        try {
+                            if (Double.parseDouble(device1.getNO()) > Double.parseDouble(device1.getNG())) {
+                                createNotification(device1, ids.indexOf(id));
+                            }
+                        } catch (NumberFormatException e) {
+                            e.printStackTrace();
                         }
                     }
 
@@ -347,8 +335,12 @@ public class TempMonitoringService extends LifecycleService implements Serializa
                         if (CommonActivity.isNullOrEmpty(device1.getNO())
                                 || CommonActivity.isNullOrEmpty(device1.getNG()))
                             return;
-                        if (Double.parseDouble(device1.getNO()) > Double.parseDouble(device1.getNG())) {
-                            createNotification(device1, index);
+                        try {
+                            if (Double.parseDouble(device1.getNO()) > Double.parseDouble(device1.getNG())) {
+                                createNotification(device1, index);
+                            }
+                        } catch (NumberFormatException e) {
+                            e.printStackTrace();
                         }
                     });
                 }

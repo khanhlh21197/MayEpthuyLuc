@@ -4,11 +4,9 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.VibrationEffect;
-import android.os.Vibrator;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,33 +24,48 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.databinding.DataBindingUtil;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.smarthome.R;
 import com.example.smarthome.common.CommonActivity;
+import com.example.smarthome.dao.AppDatabase;
 import com.example.smarthome.databinding.DetailDeviceFragmentBinding;
 import com.example.smarthome.serializer.ObjectSerializer;
 import com.example.smarthome.ui.device.model.Device;
 import com.example.smarthome.warning.WarningService;
+import com.github.mikephil.charting.charts.CombinedChart;
+import com.github.mikephil.charting.components.AxisBase;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.CombinedData;
+import com.github.mikephil.charting.data.DataSet;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
+import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Objects;
 
-public class DetailDeviceFragment extends Fragment {
+public class DetailDeviceFragment extends Fragment implements View.OnClickListener, OnChartValueSelectedListener {
     private static final String SHARED_PREFS_HISTORY = "SHARED_PREFS_HISTORY";
     private static final String KEY_HISTORY = "HISTORY";
-    private Vibrator v;
     private Intent warningService;
+    private AppDatabase mDb;
+    private CombinedChart mChart;
 
     private DetailDeviceFragmentBinding mBinding;
     private DetailDeviceViewModel viewModel;
     private Device device;
-    private MutableLiveData<Device> liveData = new MutableLiveData<>();
+    private boolean flashingText = false;
     private HistoryAdapter historyAdapter;
     private int indexOfDevice = 0;
     private int highTemp = 0;
@@ -85,7 +98,92 @@ public class DetailDeviceFragment extends Fragment {
         unit();
         initAdapter();
         editDeviceName();
+        initChart();
         return mBinding.getRoot();
+    }
+
+    private void initChart() {
+        Calendar calendar = Calendar.getInstance();
+        @SuppressLint("SimpleDateFormat") SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH/mm");
+        mChart = mBinding.combineChart;
+        mChart.getDescription().setEnabled(false);
+        mChart.setBackgroundColor(Color.WHITE);
+        mChart.setDrawGridBackground(false);
+        mChart.setDrawBarShadow(false);
+        mChart.setHighlightFullBarEnabled(false);
+        mChart.setOnChartValueSelectedListener(this);
+
+        YAxis rightAxis = mChart.getAxisRight();
+        rightAxis.setDrawGridLines(false);
+        rightAxis.setAxisMinimum(0f);
+
+        YAxis leftAxis = mChart.getAxisLeft();
+        leftAxis.setDrawGridLines(false);
+        leftAxis.setAxisMinimum(0f);
+
+        final List<String> xLabel = new ArrayList<>();
+        xLabel.add("Jan");
+        xLabel.add("Feb");
+        xLabel.add("Mar");
+        xLabel.add("Apr");
+        xLabel.add("May");
+        xLabel.add("Jun");
+        xLabel.add("Jul");
+        xLabel.add("Aug");
+        xLabel.add("Sep");
+        xLabel.add("Oct");
+        xLabel.add("Nov");
+        xLabel.add("Dec");
+
+        XAxis xAxis = mChart.getXAxis();
+        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xAxis.setAxisMinimum(0f);
+        xAxis.setGranularity(1f);
+        xAxis.setValueFormatter(new ValueFormatter() {
+            @Override
+            public String getAxisLabel(float value, AxisBase axis) {
+                return xLabel.get((int) value % xLabel.size());
+            }
+        });
+
+        CombinedData data = new CombinedData();
+        LineData lineDatas = new LineData();
+        lineDatas.addDataSet((ILineDataSet) dataChart());
+
+        data.setData(lineDatas);
+
+        xAxis.setAxisMaximum(data.getXMax() + 0.25f);
+
+        mChart.setData(data);
+        mChart.invalidate();
+    }
+
+    private static DataSet dataChart() {
+
+        LineData d = new LineData();
+        int[] data = new int[]{1, 2, 2, 1, 1, 1, 2, 1, 1, 2, 1, 9};
+
+        ArrayList<Entry> entries = new ArrayList<Entry>();
+
+        for (int index = 0; index < 12; index++) {
+            entries.add(new Entry(index, data[index]));
+        }
+
+        LineDataSet set = new LineDataSet(entries, "Request Ots approved");
+        set.setColor(Color.GREEN);
+        set.setLineWidth(2.5f);
+        set.setCircleColor(Color.GREEN);
+        set.setCircleRadius(5f);
+        set.setFillColor(Color.GREEN);
+        set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+        set.setDrawValues(true);
+        set.setValueTextSize(10f);
+        set.setValueTextColor(Color.GREEN);
+
+        set.setAxisDependency(YAxis.AxisDependency.LEFT);
+        d.addDataSet(set);
+
+        return set;
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -126,35 +224,19 @@ public class DetailDeviceFragment extends Fragment {
     @SuppressLint("CheckResult")
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void unit() {
+        mDb = AppDatabase.getDatabase(getContext());
+//        getDB();
         warningService = new Intent(getActivity(), WarningService.class);
+        mBinding.btnWarning.setAnimation(createFlashingAnimation());
 
         viewModel = ViewModelProviders
                 .of(Objects.requireNonNull(getActivity()))
                 .get(DetailDeviceViewModel.class);
-//        viewModel.getAllDevice().observe(getActivity(), dataSnapshot -> {
-//            ArrayList<Device> devices;
-//            GenericTypeIndicator<ArrayList<Device>> t =
-//                    new GenericTypeIndicator<ArrayList<Device>>() {
-//                    };
-//            devices = dataSnapshot.getValue(t);
-//            if (!CommonActivity.isNullOrEmpty(devices)) {
-//                for (Device device : devices) {
-//                    if (device.getId().equals(DetailDeviceFragment.this.device.getId())) {
-//                        indexOfDevice = devices.indexOf(device);
-//                        liveData.setValue(device);
-//                        mBinding.setDetailDevice(device);
-//                        @SuppressLint("SimpleDateFormat") String timeStamp
-//                                = new SimpleDateFormat("dd-MM-yyyy  HH:mm:ss").format(Calendar.getInstance().getTime());
-//                        device.setTime(timeStamp);
-//                        break;
-//                    }
-//                }
-//            }
-//        });
 
         viewModel.getAllDevice().subscribe(devices -> {
             if (!CommonActivity.isNullOrEmpty(devices)) {
                 for (Device device : devices) {
+                    insertDevice(device);
                     if (device.getId().equals(DetailDeviceFragment.this.device.getId())) {
                         indexOfDevice = devices.indexOf(device);
 //                        liveData.setValue(device);
@@ -172,67 +254,7 @@ public class DetailDeviceFragment extends Fragment {
                 }
             }
         });
-
-//        observeTemperature();
-
-        mBinding.btnThreshold.setOnClickListener(v -> {
-            String ng = mBinding.edtThreshold.getText().toString().trim();
-            if (!CommonActivity.isNullOrEmpty(ng)) {
-                viewModel.setNG(indexOfDevice, ng).subscribe(s -> {
-                    if (s.equals("Success")) {
-                        mBinding.edtThreshold.setText("");
-                        Toast.makeText(getActivity(), "Cài đặt ngưỡng thành công!", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(getActivity(), "Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
-                    }
-                });
-            } else {
-                CommonActivity.showConfirmValidate(getActivity(), "Vui lòng nhập giá trị ngưỡng");
-            }
-        });
-
-        mBinding.btnDeleteHistory.setOnClickListener(v -> {
-            prefs = Objects.requireNonNull(getActivity()).getSharedPreferences(SHARED_PREFS_HISTORY, Context.MODE_PRIVATE);
-            editor = prefs.edit();
-            editor.clear();
-            editor.apply();
-            history.clear();
-            historyAdapter.notifyDataSetChanged();
-        });
-
-//        viewModel.onTemperatureChange(indexOfDevice).observe(Objects.requireNonNull(getActivity()), dataSnapshot -> {
-//            String temp = dataSnapshot.getValue(String.class);
-//            if (temp != null) {
-//                Log.d("Temp", temp);
-//            }
-//            total++;
-//            viewModel.setTotal(indexOfDevice, String.valueOf(total));
-//        });
     }
-
-//    @SuppressLint({"NewApi", "SetTextI18n"})
-//    private void observeTemperature() {
-//        liveData.observe(Objects.requireNonNull(getActivity()), device -> {
-//            mBinding.setDetailDevice(device);
-//            @SuppressLint("SimpleDateFormat") String timeStamp
-//                    = new SimpleDateFormat("dd-MM-yyyy  HH:mm:ss").format(Calendar.getInstance().getTime());
-//            device.setTime(timeStamp);
-//            try {
-//                compareTemp();
-////                if (!CommonActivity.isNullOrEmpty(history)) {
-////                    if (!device.getNO().equals(history.get(history.size() - 1).getNO())
-////                            && !device.getNO().equals(history.get(0).getNO())) {
-////                        compareTemp();
-////                    }
-////                } else {
-////                    compareTemp();
-////                }
-////                mBinding.tvTotal.setText("Tổng số người đo : " + history.size());
-//            } catch (IndexOutOfBoundsException | NumberFormatException e) {
-//                e.printStackTrace();
-//            }
-//        });
-//    }
 
     @SuppressLint("CheckResult")
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -240,34 +262,38 @@ public class DetailDeviceFragment extends Fragment {
         viewModel.observerDevice(indexOfDevice).subscribe(device1 -> {
             if (CommonActivity.isNullOrEmpty(device1.getNO()) || CommonActivity.isNullOrEmpty(device1.getNG()))
                 return;
-            if (Double.parseDouble(device1.getNO()) > Double.parseDouble(device1.getNG())) {
-                history.add(0, device1);
+            try {
+                if (Double.parseDouble(device1.getNO()) > Double.parseDouble(device1.getNG())) {
+                    history.add(0, device1);
 //            saveHistory(history);
-                historyAdapter.notifyItemInserted(0);
-                mBinding.listHistory.smoothScrollToPosition(0);
-                startWarning(device1.getNG());
-                mBinding.btnWarning.setOnClickListener(v -> {
+                    historyAdapter.notifyItemInserted(0);
+                    mBinding.listHistory.smoothScrollToPosition(0);
+                    startWarning(device1.getNG());
+                    mBinding.btnWarning.setOnClickListener(v -> {
+                        cancelWarning();
+                    });
+                    Log.d("history", String.valueOf(history.size()));
+                    Log.d("highTemp", String.valueOf(highTemp));
+                } else {
+                    history.add(device1);
+//            saveHistory(history);
+                    historyAdapter.notifyItemInserted(history.size());
                     cancelWarning();
-                });
-                Log.d("history", String.valueOf(history.size()));
-                Log.d("highTemp", String.valueOf(highTemp));
-            } else {
-                history.add(device1);
-//            saveHistory(history);
-                historyAdapter.notifyItemInserted(history.size());
-                cancelWarning();
+                    mBinding.txtHumanTemp.clearAnimation();
+                }
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
             }
         });
     }
 
     private void startWarning(String ng) {
-        new Handler().postDelayed(() -> {
-            playWarningSound();
-            vibrate();
-        }, 2000);
-        mBinding.txtHumanTemp.setAnimation(createFlashingAnimation());
+        playWarningSound();
+        if (!flashingText) {
+            mBinding.txtHumanTemp.setAnimation(createFlashingAnimation());
+            flashingText = true;
+        }
         mBinding.btnWarning.setVisibility(View.VISIBLE);
-        mBinding.btnWarning.setAnimation(createFlashingAnimation());
 //        showNoti();
     }
 
@@ -281,32 +307,11 @@ public class DetailDeviceFragment extends Fragment {
     }
 
     private void cancelWarning() {
-        if (v != null) {
-            v.cancel();
-        }
-        mBinding.txtHumanTemp.clearAnimation();
-        mBinding.btnWarning.clearAnimation();
         mBinding.btnWarning.setVisibility(View.GONE);
+        mBinding.txtHumanTemp.clearAnimation();
+        flashingText = false;
         if (getActivity() != null) {
             Objects.requireNonNull(getActivity()).stopService(warningService);
-        }
-    }
-
-    private void vibrate() {
-        if (v != null && v.hasVibrator()) {
-            return;
-        }
-        if (!CommonActivity.isNullOrEmpty(getActivity())) {
-            v = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
-            if (!CommonActivity.isNullOrEmpty(v)) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    v.vibrate(VibrationEffect.createOneShot(500,
-                            VibrationEffect.DEFAULT_AMPLITUDE));
-                } else {
-                    //deprecated in API 26
-                    v.vibrate(3000);
-                }
-            }
         }
     }
 
@@ -321,15 +326,11 @@ public class DetailDeviceFragment extends Fragment {
 
     @Override
     public void onResume() {
-//        if (!CommonActivity.isNullOrEmpty(getActivity()))
-//        getActivity().registerReceiver(receiver, new IntentFilter(".warning.WarningBroadcastReceiver"));
         super.onResume();
     }
 
     @Override
     public void onPause() {
-//        if (!CommonActivity.isNullOrEmpty(getActivity()))
-//        getActivity().unregisterReceiver(receiver);
         super.onPause();
     }
 
@@ -375,5 +376,63 @@ public class DetailDeviceFragment extends Fragment {
         });
         AlertDialog dialog = alert.create();
         dialog.show();
+    }
+
+    @SuppressLint("CheckResult")
+    private void getDB() {
+//        ArrayList<Device> devices = mDb.deviceDAO().getAllDevice();
+//        Observable.just(devices).subscribe(device -> {
+//
+//        });
+//        Log.d(TAG, "getDB: " + devices.size());
+    }
+
+    private void insertDevice(Device device) {
+//        mDb.deviceDAO().insertDevice(device);
+    }
+
+    @SuppressLint("CheckResult")
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.btnDeleteHistory:
+                prefs = Objects.requireNonNull(getActivity()).getSharedPreferences(SHARED_PREFS_HISTORY, Context.MODE_PRIVATE);
+                editor = prefs.edit();
+                editor.clear();
+                editor.apply();
+                history.clear();
+                historyAdapter.notifyDataSetChanged();
+                break;
+            case R.id.btnThreshold:
+                String ng = mBinding.edtThreshold.getText().toString().trim();
+                if (!CommonActivity.isNullOrEmpty(ng)) {
+                    viewModel.setNG(indexOfDevice, ng).subscribe(s -> {
+                        if (s.equals("Success")) {
+                            mBinding.edtThreshold.setText("");
+                            Toast.makeText(getActivity(), "Cài đặt ngưỡng thành công!", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getActivity(), "Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                } else {
+                    CommonActivity.showConfirmValidate(getActivity(), "Vui lòng nhập giá trị ngưỡng");
+                }
+                break;
+        }
+    }
+
+    @Override
+    public void onValueSelected(Entry e, Highlight h) {
+        Toast.makeText(getActivity(), "Value: "
+                + e.getY()
+                + ", index: "
+                + h.getX()
+                + ", DataSet index: "
+                + h.getDataSetIndex(), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onNothingSelected() {
+
     }
 }

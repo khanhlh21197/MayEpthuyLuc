@@ -21,6 +21,7 @@
         android:layout_toEndOf="@+id/imgLogo"
         android:maxLines="1"
         android:text="Nhiệt độ vượt ngưỡng cho phép"
+        android:textColor="@color/red"
         android:textSize="@dimen/_12ssp" />
 
     <LinearLayout
@@ -36,6 +37,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
+            android:padding="4dp"
             android:text="Tắt âm báo"
             android:textAllCaps="true"
             android:textSize="@dimen/_12ssp" />

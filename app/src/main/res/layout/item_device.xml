@@ -14,6 +14,7 @@
         android:layout_width="180dp"
         android:layout_height="180dp"
         android:layout_margin="8dp"
+        android:animateLayoutChanges="true"
         android:background="@drawable/bg_textview"
         android:elevation="8dp"
         android:padding="4dp"
@@ -56,6 +57,42 @@
             android:layout_marginTop="@dimen/_8sdp"
             android:scaleType="fitXY"
             android:src="@drawable/ic_battery"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@id/txtTemp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/llDeviceName" />
+
+        <RelativeLayout
+            android:id="@+id/rlOnOff"
+            android:layout_width="@dimen/_64sdp"
+            android:layout_height="@dimen/_64sdp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/llDeviceName">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/on"
+                android:layout_width="@dimen/_64sdp"
+                android:layout_height="@dimen/_64sdp"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:src="@drawable/ic_power_off" />
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/off"
+                android:layout_width="@dimen/_64sdp"
+                android:layout_height="@dimen/_64sdp"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:src="@drawable/ic_power_on"
+                android:visibility="gone" />
+
+        </RelativeLayout>
+
+        <ProgressBar
+            android:id="@+id/progressChangeStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
             app:layout_constraintBottom_toTopOf="@id/txtTemp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
@@ -78,15 +115,15 @@
             android:id="@+id/txtTemp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="8dp"
             android:gravity="center"
-            android:text="@{item_device.temp}"
+            android:text="Đang hoạt động"
             android:textColor="@color/colorPrimary"
             android:textSize="@dimen/_16ssp"
             app:layout_constraintBottom_toTopOf="@id/llActive"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/imgDevice"
+            app:layout_constraintTop_toBottomOf="@id/rlOnOff"
             tools:text="38 độ C" />
 
         <LinearLayout
@@ -95,7 +132,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="2dp"
-            android:layout_marginBottom="2dp"
+            android:layout_marginBottom="8dp"
             android:orientation="horizontal"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"

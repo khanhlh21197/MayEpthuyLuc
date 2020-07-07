@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TechNoCorp</string>
+    <string name="app_name">Monitoring Application</string>
     <string name="chon_ngay">Chọn ngày</string>
     <string name="errorProcess">Có lỗi xảy ra trong quá trình xử lý. Vui lòng kiểm tra lại.</string>
     <string name="ok">Đồng ý</string>
@@ -43,11 +43,12 @@
     <string name="login">Đăng nhập</string>
     <string name="manage_device">Quản lý thiết bị</string>
     <string name="no_device">Không có thiết bị, vui lòng thêm thiết bị</string>
-    <string name="turn_on_monitoring">Bật theo dõi nhiệt độ</string>
-    <string name="turn_off_monitoring">Tắt theo dõi nhiệt độ</string>
+    <string name="turn_on_monitoring">Bật theo dõi thiết bị</string>
+    <string name="turn_off_monitoring">Tắt theo dõi thiết bị</string>
     <string name="input_device_name">Vui lòng nhập tên thiết bị</string>
     <string name="delete">Xóa</string>
     <string name="on">Đã bật</string>
     <string name="off">Đã tắt</string>
     <string name="change_device_name">Đổi tên thiết bị</string>
+    <string name="service_offline">Cảnh báo nhiệt độ đã bị tắt !</string>
 </resources>
