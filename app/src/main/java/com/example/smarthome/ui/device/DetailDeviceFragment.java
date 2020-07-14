@@ -1,12 +1,14 @@
 package com.example.smarthome.ui.device;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -55,12 +57,18 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
 
+import io.reactivex.Observable;
+import io.reactivex.Single;
+
 public class DetailDeviceFragment extends Fragment implements View.OnClickListener, OnChartValueSelectedListener {
     private static final String SHARED_PREFS_HISTORY = "SHARED_PREFS_HISTORY";
     private static final String KEY_HISTORY = "HISTORY";
     private Intent warningService;
     private AppDatabase mDb;
     private CombinedChart mChart;
+    private XAxis xAxis;
+    private List<String> timeLabel = new ArrayList<>();
+    private ArrayList<Float> temperature = new ArrayList<>();
 
     private DetailDeviceFragmentBinding mBinding;
     private DetailDeviceViewModel viewModel;
@@ -95,16 +103,14 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
                         container,
                         false);
         getHistory();
+        initChart();
         unit();
         initAdapter();
         editDeviceName();
-        initChart();
         return mBinding.getRoot();
     }
 
     private void initChart() {
-        Calendar calendar = Calendar.getInstance();
-        @SuppressLint("SimpleDateFormat") SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH/mm");
         mChart = mBinding.combineChart;
         mChart.getDescription().setEnabled(false);
         mChart.setBackgroundColor(Color.WHITE);
@@ -121,52 +127,30 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
         leftAxis.setDrawGridLines(false);
         leftAxis.setAxisMinimum(0f);
 
-        final List<String> xLabel = new ArrayList<>();
-        xLabel.add("Jan");
-        xLabel.add("Feb");
-        xLabel.add("Mar");
-        xLabel.add("Apr");
-        xLabel.add("May");
-        xLabel.add("Jun");
-        xLabel.add("Jul");
-        xLabel.add("Aug");
-        xLabel.add("Sep");
-        xLabel.add("Oct");
-        xLabel.add("Nov");
-        xLabel.add("Dec");
+        timeLabel = new ArrayList<>();
 
-        XAxis xAxis = mChart.getXAxis();
+        xAxis = mChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setAxisMinimum(0f);
         xAxis.setGranularity(1f);
         xAxis.setValueFormatter(new ValueFormatter() {
             @Override
             public String getAxisLabel(float value, AxisBase axis) {
-                return xLabel.get((int) value % xLabel.size());
+                if (timeLabel == null) return "";
+                return timeLabel.get((int) value % timeLabel.size());
             }
         });
-
-        CombinedData data = new CombinedData();
-        LineData lineDatas = new LineData();
-        lineDatas.addDataSet((ILineDataSet) dataChart());
-
-        data.setData(lineDatas);
-
-        xAxis.setAxisMaximum(data.getXMax() + 0.25f);
-
-        mChart.setData(data);
-        mChart.invalidate();
     }
 
-    private static DataSet dataChart() {
+    private static DataSet dataChart(ArrayList<Float> temperature) {
+        if (CommonActivity.isNullOrEmpty(temperature)) return null;
 
         LineData d = new LineData();
-        int[] data = new int[]{1, 2, 2, 1, 1, 1, 2, 1, 1, 2, 1, 9};
 
         ArrayList<Entry> entries = new ArrayList<Entry>();
 
-        for (int index = 0; index < 12; index++) {
-            entries.add(new Entry(index, data[index]));
+        for (int index = 0; index < temperature.size(); index++) {
+            entries.add(new Entry(index, temperature.get(index)));
         }
 
         LineDataSet set = new LineDataSet(entries, "Request Ots approved");
@@ -225,9 +209,12 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void unit() {
         mDb = AppDatabase.getDatabase(getContext());
-//        getDB();
+        getDB();
         warningService = new Intent(getActivity(), WarningService.class);
         mBinding.btnWarning.setAnimation(createFlashingAnimation());
+        mBinding.btnThreshold.setOnClickListener(this);
+        mBinding.btnOffset.setOnClickListener(this);
+        mBinding.btnLoopingTime.setOnClickListener(this);
 
         viewModel = ViewModelProviders
                 .of(Objects.requireNonNull(getActivity()))
@@ -236,24 +223,79 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
         viewModel.getAllDevice().subscribe(devices -> {
             if (!CommonActivity.isNullOrEmpty(devices)) {
                 for (Device device : devices) {
-                    insertDevice(device);
                     if (device.getId().equals(DetailDeviceFragment.this.device.getId())) {
                         indexOfDevice = devices.indexOf(device);
 //                        liveData.setValue(device);
-                        mBinding.setDetailDevice(device);
-                        @SuppressLint("SimpleDateFormat") String timeStamp
-                                = new SimpleDateFormat("dd-MM-yyyy  HH:mm:ss").format(Calendar.getInstance().getTime());
-                        device.setTime(timeStamp);
-                        try {
-                            compareTemp();
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                        if (!CommonActivity.isNullOrEmpty(device.getNCL())) {
+                            startHandler(device.getNCL(), device);
                         }
                         break;
                     }
                 }
             }
         });
+    }
+
+    @SuppressLint("CheckResult")
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void saveDevice(Device device) {
+        Single.create(emitter -> {
+            Device d = new Device(device.getId(), device.getNO(), device.getTime());
+            AppDatabase.getDatabase(getActivity()).deviceDAO().insertDevice(d);
+        }).subscribe((o, throwable) -> {
+            if (throwable == null) {
+                Log.d("saveDevice", o.toString());
+            } else {
+                Log.d("Error", throwable.toString());
+            }
+        });
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void startHandler(String time, Device device) {
+        long timeL = 0;
+        try {
+            timeL = Long.parseLong(time) * 1000;
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+        new Handler().postDelayed(() -> {
+            mBinding.setDetailDevice(device);
+            @SuppressLint("SimpleDateFormat") String timeStamp
+                    = new SimpleDateFormat("dd-MM-yyyy  HH:mm:ss").format(Calendar.getInstance().getTime());
+            device.setTime(timeStamp);
+            saveDevice(device);
+
+            @SuppressLint("SimpleDateFormat") String currentTime
+                    = new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
+            timeLabel.add(currentTime);
+            float temp = 0;
+            try {
+                temp = Float.parseFloat(device.getNO());
+                temperature.add(temp);
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+            updateChart();
+            try {
+                compareTemp();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }, timeL);
+    }
+
+    private void updateChart() {
+        CombinedData data = new CombinedData();
+        LineData lineDatas = new LineData();
+        lineDatas.addDataSet((ILineDataSet) dataChart(temperature));
+
+        data.setData(lineDatas);
+
+        xAxis.setAxisMaximum(data.getXMax() + 0.25f);
+
+        mChart.setData(data);
+        mChart.invalidate();
     }
 
     @SuppressLint("CheckResult")
@@ -294,6 +336,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
             flashingText = true;
         }
         mBinding.btnWarning.setVisibility(View.VISIBLE);
+        mBinding.btnWarning.setAnimation(createFlashingAnimation());
 //        showNoti();
     }
 
@@ -308,6 +351,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
 
     private void cancelWarning() {
         mBinding.btnWarning.setVisibility(View.GONE);
+        mBinding.btnWarning.clearAnimation();
         mBinding.txtHumanTemp.clearAnimation();
         flashingText = false;
         if (getActivity() != null) {
@@ -378,17 +422,22 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
         dialog.show();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint("CheckResult")
     private void getDB() {
-//        ArrayList<Device> devices = mDb.deviceDAO().getAllDevice();
-//        Observable.just(devices).subscribe(device -> {
-//
-//        });
-//        Log.d(TAG, "getDB: " + devices.size());
-    }
-
-    private void insertDevice(Device device) {
-//        mDb.deviceDAO().insertDevice(device);
+        ArrayList<Device> devices = (ArrayList<Device>) mDb.deviceDAO().getAllDevice();
+        for (Device device : devices) {
+            timeLabel.add(device.getTime());
+            try {
+                temperature.add(Float.parseFloat(device.getNO()));
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+        }
+        Observable.just(devices).subscribe(device -> {
+            Log.d("getDB", "getDB: " + devices.size());
+        });
+        updateChart();
     }
 
     @SuppressLint("CheckResult")
@@ -404,21 +453,39 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
                 historyAdapter.notifyDataSetChanged();
                 break;
             case R.id.btnThreshold:
-                String ng = mBinding.edtThreshold.getText().toString().trim();
-                if (!CommonActivity.isNullOrEmpty(ng)) {
-                    viewModel.setNG(indexOfDevice, ng).subscribe(s -> {
-                        if (s.equals("Success")) {
-                            mBinding.edtThreshold.setText("");
-                            Toast.makeText(getActivity(), "Cài đặt ngưỡng thành công!", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(getActivity(), "Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                } else {
-                    CommonActivity.showConfirmValidate(getActivity(), "Vui lòng nhập giá trị ngưỡng");
-                }
+                configureThreshold();
+                break;
+            case R.id.btnOffset:
+                configureOffset();
+                break;
+            case R.id.btnLoopingTime:
+                configureLoopingTime();
                 break;
         }
+    }
+
+    @SuppressLint("CheckResult")
+    private void configureLoopingTime() {
+        createPopUp(Objects.requireNonNull(getActivity()),
+                getString(R.string.looping_time),
+                ParamType.LOOPINGTIME,
+                "Thời gian");
+    }
+
+    @SuppressLint("CheckResult")
+    private void configureOffset() {
+        createPopUp(Objects.requireNonNull(getActivity()),
+                getString(R.string.offset),
+                ParamType.OFFSET,
+                "Offset");
+    }
+
+    @SuppressLint("CheckResult")
+    private void configureThreshold() {
+        createPopUp(Objects.requireNonNull(getActivity()),
+                getString(R.string.threshold),
+                ParamType.THRESHOLD,
+                "Ngưỡng");
     }
 
     @Override
@@ -434,5 +501,88 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     @Override
     public void onNothingSelected() {
 
+    }
+
+    @SuppressLint("CheckResult")
+    public void createPopUp(Activity activity,
+                            String title,
+                            ParamType type,
+                            String paramName) {
+        LayoutInflater inflater = activity.getLayoutInflater();
+        @SuppressLint("InflateParams") View alertLayout = inflater.inflate(R.layout.dialog_with_edittext, null);
+        final EditText editText = alertLayout.findViewById(R.id.editText);
+        final TextView tvParamName = alertLayout.findViewById(R.id.tvParamName);
+
+        tvParamName.setText(paramName);
+
+        androidx.appcompat.app.AlertDialog.Builder alert =
+                new androidx.appcompat.app.AlertDialog.Builder(activity);
+        alert.setTitle(title);
+        alert.setView(alertLayout);
+        alert.setCancelable(false);
+
+        alert.setNegativeButton(activity.getString(R.string.cancel), (dialog1, which) -> {
+            Toast.makeText(getActivity(), getString(R.string.cancel), Toast.LENGTH_SHORT).show();
+        });
+        alert.setPositiveButton(activity.getString(R.string.ok), (dialog12, which) -> {
+            switch (type) {
+                case OFFSET:
+                    String offSet = editText.getText().toString().trim();
+                    if (!CommonActivity.isNullOrEmpty(offSet)) {
+                        viewModel.setOffset(indexOfDevice, offSet).subscribe(s -> {
+                            if (s.equals("Success")) {
+                                editText.setText("");
+                                Toast.makeText(getActivity(), "Cài đặt offset thành công!", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(getActivity(), "Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                    break;
+                case THRESHOLD:
+                    String ng = editText.getText().toString().trim();
+                    if (!CommonActivity.isNullOrEmpty(ng)) {
+                        viewModel.setNG(indexOfDevice, ng).subscribe(s -> {
+                            if (s.equals("Success")) {
+                                editText.setText("");
+                                Toast.makeText(getActivity(), "Cài đặt ngưỡng thành công!", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(getActivity(), "Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    } else {
+                        CommonActivity.showConfirmValidate(getActivity(), "Vui lòng nhập giá trị ngưỡng");
+                    }
+                    break;
+                case LOOPINGTIME:
+                    String loopingTime = editText.getText().toString().trim();
+                    if (!CommonActivity.isNullOrEmpty(loopingTime)) {
+                        viewModel.setLoopingTime(indexOfDevice, loopingTime).subscribe(s -> {
+                            if (s.equals("Success")) {
+                                editText.setText("");
+                                Toast.makeText(getActivity(), "Cài đặt thời gian thành công!", Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(getActivity(), "Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    }
+                    break;
+            }
+        });
+
+        androidx.appcompat.app.AlertDialog dialog = alert.create();
+        dialog.show();
+    }
+
+    enum ParamType {
+        OFFSET(1),
+        THRESHOLD(2),
+        LOOPINGTIME(3);
+
+        private int value;
+
+        ParamType(int i) {
+            i = value;
+        }
     }
 }

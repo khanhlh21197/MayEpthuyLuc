@@ -108,6 +108,20 @@ public class DetailDeviceViewModel extends ViewModel {
         });
     }
 
+    io.reactivex.Observable<String> setOffset(int indexOfDevice, String offSet) {
+        return Observable.create(emitter -> {
+            deviceRef.child(String.valueOf(indexOfDevice)).child("NDU").setValue(offSet)
+                    .addOnSuccessListener(aVoid -> emitter.onNext("Success"));
+        });
+    }
+
+    io.reactivex.Observable<String> setLoopingTime(int indexOfDevice, String looping) {
+        return Observable.create(emitter -> {
+            deviceRef.child(String.valueOf(indexOfDevice)).child("NCL").setValue(looping)
+                    .addOnSuccessListener(aVoid -> emitter.onNext("Success"));
+        });
+    }
+
     public void setName(int indexOfDevice, String name) {
         deviceRef.child(String.valueOf(indexOfDevice)).child("name").setValue(name);
     }

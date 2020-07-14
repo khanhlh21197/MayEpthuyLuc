@@ -7,12 +7,12 @@ import androidx.room.Query;
 
 import com.example.smarthome.ui.device.model.Device;
 
-import java.util.ArrayList;
+import java.util.List;
 
 @Dao
 public interface DeviceDAO {
-//    @Query("SELECT * FROM device")
-//    ArrayList<Device> getAllDevice();
+    @Query("SELECT * FROM device")
+    List<Device> getAllDevice();
 
     @Insert
     void insertDevice(Device device);

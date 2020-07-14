@@ -51,4 +51,7 @@
     <string name="off">Đã tắt</string>
     <string name="change_device_name">Đổi tên thiết bị</string>
     <string name="service_offline">Cảnh báo nhiệt độ đã bị tắt !</string>
+    <string name="threshold">Cài đặt ngưỡng cảnh báo !</string>
+    <string name="offset">Cài đặt giá trị Offset !</string>
+    <string name="looping_time">Cài đặt thời gian cập nhật !</string>
 </resources>

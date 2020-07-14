@@ -27,10 +27,14 @@ import java.util.Map;
 @RequiresApi(api = Build.VERSION_CODES.O)
 @Entity
 public class Device implements Serializable {
+    @PrimaryKey(autoGenerate = true)
+    @NonNull
+    private int autoGeneID;
+
     @SerializedName("id")
     @Expose
-    @PrimaryKey(autoGenerate = false)
-    @NonNull private String id;
+    @NonNull
+    private String id;
     @SerializedName("user")
     @Expose
     private String user;
@@ -93,10 +97,18 @@ public class Device implements Serializable {
         return active ? View.GONE : View.VISIBLE;
     }
 
-    public Device(String id, String nO, String time) {
+    public Device(@NonNull String id, String nO, String time) {
         this.id = id;
         this.nO = nO;
         this.time = time;
+    }
+
+    public int getAutoGeneID() {
+        return autoGeneID;
+    }
+
+    public void setAutoGeneID(int autoGeneID) {
+        this.autoGeneID = autoGeneID;
     }
 
     public String getPosition() {
