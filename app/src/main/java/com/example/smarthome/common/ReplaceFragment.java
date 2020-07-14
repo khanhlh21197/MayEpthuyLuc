@@ -47,6 +47,42 @@ public class ReplaceFragment {
         }
     }
 
+    public static void replaceFragmentByTag(Activity activity,
+                                            Fragment fragment,
+                                            boolean isAnimation,
+                                            String TAG) {
+        if (activity != null && !activity.isFinishing()) {
+//            if (activity instanceof MainActivity) {
+//                ((MainActivity) activity).enableViews(true);
+//            }
+
+            String backStateName = fragment.getClass().getName();
+
+            FragmentManager manager = ((AppCompatActivity) activity).getSupportFragmentManager();
+            boolean fragmentPopped = false;
+            try {
+                fragmentPopped = manager.popBackStackImmediate(backStateName, 0);
+            } catch (IllegalStateException ignored) {
+                // There's no way to avoid getting this if saveInstanceState has already been called.
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            if (!fragmentPopped) { // fragment not in back stack, create it.
+                FragmentTransaction ft = manager.beginTransaction();
+
+                if (isAnimation) {
+                    ft.setCustomAnimations(R.anim.fade_in, R.anim.fade_out);
+                }
+
+                ft.replace(R.id.frame_container, fragment, backStateName);
+
+                ft.addToBackStack(backStateName);
+                ft.commitAllowingStateLoss();
+            }
+        }
+    }
+
     public static void addFragment(Activity activity, Fragment fragment, boolean isAnimation) {
         if (activity != null && !activity.isFinishing()) {
             String backStateName = fragment.getClass().getName();

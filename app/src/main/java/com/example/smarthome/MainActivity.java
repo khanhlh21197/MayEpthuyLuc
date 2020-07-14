@@ -2,16 +2,23 @@ package com.example.smarthome;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
+import com.example.smarthome.common.ReplaceFragment;
 import com.example.smarthome.ui.login.LoginFragment;
+import com.example.smarthome.ui.main.MainFragment;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.iid.FirebaseInstanceId;
 
 import java.util.Objects;
@@ -42,6 +49,17 @@ public class MainActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_toolbar, menu);
         return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.logOut:
+                FirebaseAuth.getInstance().signOut();
+                ReplaceFragment.replaceFragment(this, LoginFragment.newInstance(null, null), true);
+                break;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     public void disableBackBtn() {
@@ -94,8 +112,23 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    boolean doubleBackToExitPressedOnce = false;
+
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
+        MainFragment mainFragment = (MainFragment) getSupportFragmentManager().findFragmentByTag(MainFragment.class.getName());
+        if (mainFragment != null && mainFragment.isVisible()) {
+            if (doubleBackToExitPressedOnce) {
+                finish();
+                return;
+            }
+
+            this.doubleBackToExitPressedOnce = true;
+            Toast.makeText(this, "Bấm Back lần nữa để thoát", Toast.LENGTH_SHORT).show();
+
+            new Handler().postDelayed(() -> doubleBackToExitPressedOnce = false, 2000);
+        } else {
+            super.onBackPressed();
+        }
     }
 }
