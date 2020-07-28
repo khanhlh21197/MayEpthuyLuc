@@ -45,6 +45,7 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
         holder.tvTime.setText(device.getTime());
         holder.tvTemperature.setText("Nhiệt độ : " + device.getNO() + " độ C");
         try {
+            if (device.getNO() == null && device.getNG() == null) return;
             if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
                 holder.tvTemperature.setTextColor(context.getResources().getColor(R.color.red));
                 holder.tvTime.setTextColor(context.getResources().getColor(R.color.red));

@@ -5,6 +5,9 @@ import android.os.Build;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.room.ColumnInfo;
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
 
 import com.example.smarthome.common.CommonActivity;
 import com.google.firebase.database.Exclude;
@@ -21,7 +24,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RequiresApi(api = Build.VERSION_CODES.O)
+@Entity
 public class Device implements Serializable {
+    @PrimaryKey(autoGenerate = true)
+    @NonNull
+    private int uid;
+
     @SerializedName("id")
     @Expose
     private String id;
@@ -50,9 +58,11 @@ public class Device implements Serializable {
     private String nDU;
     @SerializedName("NG")
     @PropertyName("NG")
+    @ColumnInfo(name = "ng")
     @Expose
     private String nG;
     @SerializedName("NO")
+    @ColumnInfo(name = "no")
     @PropertyName("NO")
     @Expose
     private String nO;
@@ -65,7 +75,24 @@ public class Device implements Serializable {
     @PropertyName("picture")
     @Expose
     private String picture;
-    private String temp;
+
+    public Device() {
+    }
+
+    public Device(@NonNull String id, String nO, String nG, String time) {
+        this.id = id;
+        this.nO = nO;
+        this.nG = nG;
+        this.time = time;
+    }
+
+    public int getUid() {
+        return uid;
+    }
+
+    public void setUid(int uid) {
+        this.uid = uid;
+    }
 
     public String getPicture() {
         return picture;
@@ -149,18 +176,39 @@ public class Device implements Serializable {
     }
 
     public String getNO() {
-        return nO;
+        String tempDisplay = "";
+        if ("HHA000001".equals(id)) {
+            if (nO != null) {
+                try {
+                    tempDisplay = String.valueOf(Double.parseDouble(nO) - 3);
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            tempDisplay = nO;
+        }
+        return tempDisplay;
     }
 
     public String getTemp() {
-        return nO + " " + (char) 0x00B0 + "C";
+        String tempDisplay = "";
+        if ("HHA000001".equals(id)) {
+            if (nO != null) {
+                try {
+                    tempDisplay = String.valueOf(Double.parseDouble(nO) - 3);
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            tempDisplay = nO;
+        }
+        return tempDisplay + " " + (char) 0x00B0 + "C";
     }
 
     public void setNO(String nO) {
         this.nO = nO;
-    }
-
-    public Device() {
     }
 
     public String getName() {

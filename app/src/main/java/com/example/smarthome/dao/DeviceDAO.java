@@ -14,6 +14,9 @@ public interface DeviceDAO {
     @Query("SELECT * FROM device")
     List<Device> getAllDevice();
 
+    @Query("SELECT * FROM device WHERE ID = :id")
+    List<Device> getDeviceById(String id);
+
     @Insert
     void insertDevice(Device device);
 

@@ -31,6 +31,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.smarthome.R;
 import com.example.smarthome.common.CommonActivity;
+import com.example.smarthome.dao.AppDatabase;
 import com.example.smarthome.databinding.DetailDeviceFragmentBinding;
 import com.example.smarthome.serializer.ObjectSerializer;
 import com.example.smarthome.ui.device.model.Device;
@@ -43,15 +44,19 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Objects;
 
+import io.reactivex.Single;
+
 public class DetailDeviceFragment extends Fragment {
     private static final String SHARED_PREFS_HISTORY = "SHARED_PREFS_HISTORY";
     private static final String KEY_HISTORY = "HISTORY";
     private Vibrator v;
     private Intent warningService;
+    private AppDatabase mDb;
 
     private DetailDeviceFragmentBinding mBinding;
     private DetailDeviceViewModel viewModel;
     private Device device;
+    private String idDevice = "";
     private MutableLiveData<Device> liveData = new MutableLiveData<>();
     private HistoryAdapter historyAdapter;
     private int indexOfDevice = 0;
@@ -81,8 +86,8 @@ public class DetailDeviceFragment extends Fragment {
                         R.layout.detail_device_fragment,
                         container,
                         false);
-        getHistory();
         unit();
+        getHistory();
         initAdapter();
         editDeviceName();
         return mBinding.getRoot();
@@ -95,16 +100,18 @@ public class DetailDeviceFragment extends Fragment {
         });
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void getHistory() {
         if (CommonActivity.isNullOrEmpty(history)) {
             history = new ArrayList<>();
         }
-        prefs = Objects.requireNonNull(getActivity()).getSharedPreferences(SHARED_PREFS_HISTORY, Context.MODE_PRIVATE);
-        try {
-            history = (ArrayList<Device>) ObjectSerializer.deserialize(prefs.getString(KEY_HISTORY, ObjectSerializer.serialize(new ArrayList<Device>())));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        history = (ArrayList<Device>) mDb.deviceDAO().getDeviceById(device.getId());
+//        prefs = Objects.requireNonNull(getActivity()).getSharedPreferences(SHARED_PREFS_HISTORY, Context.MODE_PRIVATE);
+//        try {
+//            history = (ArrayList<Device>) ObjectSerializer.deserialize(prefs.getString(KEY_HISTORY, ObjectSerializer.serialize(new ArrayList<Device>())));
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
     }
 
     private void initAdapter() {
@@ -120,12 +127,14 @@ public class DetailDeviceFragment extends Fragment {
         Bundle bundle = getArguments();
         if (bundle != null) {
             device = (Device) bundle.getSerializable("Device");
+            idDevice = bundle.getString("idDevice");
         }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void unit() {
         warningService = new Intent(getActivity(), WarningService.class);
+        mDb = AppDatabase.getDatabase(getContext());
 
         viewModel = ViewModelProviders
                 .of(Objects.requireNonNull(getActivity()))
@@ -192,7 +201,7 @@ public class DetailDeviceFragment extends Fragment {
                     = new SimpleDateFormat("dd-MM-yyyy  HH:mm:ss").format(Calendar.getInstance().getTime());
             device.setTime(timeStamp);
             try {
-                compareTemp();
+                compareTemp(device);
 //                if (!CommonActivity.isNullOrEmpty(history)) {
 //                    if (!device.getNO().equals(history.get(history.size() - 1).getNO())
 //                            && !device.getNO().equals(history.get(0).getNO())) {
@@ -208,23 +217,17 @@ public class DetailDeviceFragment extends Fragment {
         });
     }
 
+    @SuppressLint("CheckResult")
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void compareTemp() {
-        if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
-            history.add(0, device);
+    private void compareTemp(Device device) {
+        saveDevice(device);
 //            saveHistory(history);
-            historyAdapter.notifyItemInserted(0);
-            mBinding.listHistory.smoothScrollToPosition(0);
+        if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
             startWarning(device.getNG());
-            mBinding.btnWarning.setOnClickListener(v -> {
-                cancelWarning();
-            });
+            mBinding.btnWarning.setOnClickListener(v -> cancelWarning());
             Log.d("history", String.valueOf(history.size()));
             Log.d("highTemp", String.valueOf(highTemp));
         } else {
-            history.add(device);
-//            saveHistory(history);
-            historyAdapter.notifyItemInserted(history.size());
             cancelWarning();
         }
     }
@@ -252,7 +255,9 @@ public class DetailDeviceFragment extends Fragment {
         mBinding.txtHumanTemp.clearAnimation();
         mBinding.btnWarning.clearAnimation();
         mBinding.btnWarning.setVisibility(View.GONE);
-        Objects.requireNonNull(getActivity()).stopService(warningService);
+        if (getActivity() != null) {
+            Objects.requireNonNull(getActivity()).stopService(warningService);
+        }
     }
 
     private void vibrate() {
@@ -338,5 +343,23 @@ public class DetailDeviceFragment extends Fragment {
         });
         AlertDialog dialog = alert.create();
         dialog.show();
+    }
+
+    @SuppressLint("CheckResult")
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void saveDevice(Device device) {
+        Single.create(emitter -> {
+            Device d = new Device(device.getId(), device.getNO(), device.getNG(), device.getTime());
+            AppDatabase.getDatabase(getActivity()).deviceDAO().insertDevice(d);
+            history.add(0, device);
+            historyAdapter.notifyItemInserted(0);
+            mBinding.listHistory.smoothScrollToPosition(0);
+        }).subscribe((o, throwable) -> {
+            if (throwable == null) {
+                Log.d("Success", "");
+            } else {
+                Log.d("Error", throwable.toString());
+            }
+        });
     }
 }
