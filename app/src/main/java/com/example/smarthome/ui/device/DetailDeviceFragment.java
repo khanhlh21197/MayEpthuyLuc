@@ -16,6 +16,8 @@ import android.view.ViewGroup;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -77,6 +79,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     private HistoryAdapter historyAdapter;
     private int indexOfDevice = 0;
     private int highTemp = 0;
+    private long timeL;
     private ArrayList<Device> history = new ArrayList<>();
     private SharedPreferences prefs;
     private SharedPreferences.Editor editor;
@@ -102,7 +105,6 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
                         R.layout.detail_device_fragment,
                         container,
                         false);
-        getHistory();
         initChart();
         unit();
         initAdapter();
@@ -210,6 +212,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     private void unit() {
         mDb = AppDatabase.getDatabase(getContext());
         getDB();
+        initSpinner();
         warningService = new Intent(getActivity(), WarningService.class);
         mBinding.btnWarning.setAnimation(createFlashingAnimation());
         mBinding.btnThreshold.setOnClickListener(this);
@@ -236,6 +239,35 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
         });
     }
 
+    private void initSpinner() {
+        ArrayAdapter<CharSequence> adapter
+                = ArrayAdapter.createFromResource(Objects.requireNonNull(getActivity()),
+                R.array.history_display,
+                android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        mBinding.spnHistoryDisplay.setAdapter(adapter);
+        mBinding.spnHistoryDisplay.setSelection(0);
+
+        mBinding.spnHistoryDisplay.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position == 0) {
+                    mBinding.combineChart.setVisibility(View.VISIBLE);
+                    mBinding.listHistory.setVisibility(View.GONE);
+                } else {
+                    mBinding.combineChart.setVisibility(View.GONE);
+                    mBinding.listHistory.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
+    }
+
     @SuppressLint("CheckResult")
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void saveDevice(Device device) {
@@ -253,7 +285,6 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void startHandler(String time, Device device) {
-        long timeL = 0;
         try {
             timeL = Long.parseLong(time) * 1000;
         } catch (NumberFormatException e) {
@@ -305,10 +336,9 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
             if (CommonActivity.isNullOrEmpty(device1.getNO()) || CommonActivity.isNullOrEmpty(device1.getNG()))
                 return;
             try {
+                history.add(0, device1);
+                historyAdapter.notifyItemInserted(0);
                 if (Double.parseDouble(device1.getNO()) > Double.parseDouble(device1.getNG())) {
-                    history.add(0, device1);
-//            saveHistory(history);
-                    historyAdapter.notifyItemInserted(0);
                     mBinding.listHistory.smoothScrollToPosition(0);
                     startWarning(device1.getNG());
                     mBinding.btnWarning.setOnClickListener(v -> {
@@ -317,9 +347,6 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
                     Log.d("history", String.valueOf(history.size()));
                     Log.d("highTemp", String.valueOf(highTemp));
                 } else {
-                    history.add(device1);
-//            saveHistory(history);
-                    historyAdapter.notifyItemInserted(history.size());
                     cancelWarning();
                     mBinding.txtHumanTemp.clearAnimation();
                 }
@@ -426,6 +453,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     @SuppressLint("CheckResult")
     private void getDB() {
         ArrayList<Device> devices = (ArrayList<Device>) mDb.deviceDAO().getAllDevice();
+        history = new ArrayList<>(devices);
         for (Device device : devices) {
             timeLabel.add(device.getTime());
             try {
@@ -585,4 +613,33 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
             i = value;
         }
     }
+
+    private Runnable deviceObserveRunnable = new Runnable() {
+        @RequiresApi(api = Build.VERSION_CODES.O)
+        @Override
+        public void run() {
+            mBinding.setDetailDevice(device);
+            @SuppressLint("SimpleDateFormat") String timeStamp
+                    = new SimpleDateFormat("dd-MM-yyyy  HH:mm:ss").format(Calendar.getInstance().getTime());
+            device.setTime(timeStamp);
+            saveDevice(device);
+
+            @SuppressLint("SimpleDateFormat") String currentTime
+                    = new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
+            timeLabel.add(currentTime);
+            float temp = 0;
+            try {
+                temp = Float.parseFloat(device.getNO());
+                temperature.add(temp);
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+            updateChart();
+            try {
+                compareTemp();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    };
 }

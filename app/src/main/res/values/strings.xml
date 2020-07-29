@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Monitoring Application</string>
+    <string name="app_name">Giám sát nhiệt độ</string>
     <string name="chon_ngay">Chọn ngày</string>
     <string name="errorProcess">Có lỗi xảy ra trong quá trình xử lý. Vui lòng kiểm tra lại.</string>
     <string name="ok">Đồng ý</string>
@@ -54,4 +54,9 @@
     <string name="threshold">Cài đặt ngưỡng cảnh báo !</string>
     <string name="offset">Cài đặt giá trị Offset !</string>
     <string name="looping_time">Cài đặt thời gian cập nhật !</string>
+
+    <string-array name="history_display">
+        <item>Biểu đồ</item>
+        <item>Bảng</item>
+    </string-array>
 </resources>

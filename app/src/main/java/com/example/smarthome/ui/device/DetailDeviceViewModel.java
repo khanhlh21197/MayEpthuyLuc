@@ -22,9 +22,6 @@ import io.reactivex.Observable;
 public class DetailDeviceViewModel extends ViewModel {
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private DatabaseReference deviceRef = database.getReference("devices");
-    public MutableLiveData<String> total = new MutableLiveData<>();
-    public MutableLiveData<String> highTemp = new MutableLiveData<>();
-    private String temperature = "";
     ValueEventListener valueEventListener;
 
 //    MutableLiveData<DataSnapshot> getAllDevice() {

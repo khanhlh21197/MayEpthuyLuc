@@ -201,14 +201,35 @@ public class Device implements Serializable {
     }
 
     public String getNO() {
-        return nO;
+        String tempDisplay = "";
+        if ("HHA000001".equals(id)) {
+            if (nO != null) {
+                try {
+                    tempDisplay = String.valueOf(Double.parseDouble(nO) - 3);
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            tempDisplay = nO;
+        }
+        return tempDisplay;
     }
 
     public String getTemp() {
-        if (nO != null) {
-            return nO + " " + (char) 0x00B0 + "C";
+        String tempDisplay = "";
+        if ("HHA000001".equals(id)) {
+            if (nO != null) {
+                try {
+                    tempDisplay = String.valueOf(Double.parseDouble(nO) - 3);
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            tempDisplay = nO;
         }
-        return "";
+        return tempDisplay + " " + (char) 0x00B0 + "C";
     }
 
     public void setNO(String nO) {
