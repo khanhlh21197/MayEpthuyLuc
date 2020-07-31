@@ -316,10 +316,11 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
         dialog.show();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onItemClick(Device item) {
         ReplaceFragment.replaceFragment(getActivity(),
-                DetailDeviceFragment.newInstance(item, idDevice),
+                DetailDeviceFragment.newInstance(item, item.getId()),
                 true);
     }
 

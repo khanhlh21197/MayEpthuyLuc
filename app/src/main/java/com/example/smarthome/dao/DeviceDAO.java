@@ -14,8 +14,14 @@ public interface DeviceDAO {
     @Query("SELECT * FROM device")
     List<Device> getAllDevice();
 
+    @Query("SELECT * FROM device WHERE id = :id")
+    List<Device> getAllDevice(String id);
+
     @Insert
     void insertDevice(Device device);
+
+    @Query("DELETE FROM device WHERE id = :id")
+    int deleteHistory(String id);
 
     @Delete
     void deleteDevice(Device device);

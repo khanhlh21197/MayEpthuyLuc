@@ -77,6 +77,7 @@ public class Device implements Serializable {
     @PropertyName("picture")
     @Expose
     private String picture;
+    private int index;
     private String temp;
     private String position;
     private boolean active;
@@ -101,6 +102,14 @@ public class Device implements Serializable {
         this.id = id;
         this.nO = nO;
         this.time = time;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
     }
 
     public int getAutoGeneID() {

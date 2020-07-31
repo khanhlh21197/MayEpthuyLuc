@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
@@ -41,7 +42,6 @@ public class WarningService extends Service implements MediaPlayer.OnCompletionL
         isRunning.setValue(true);
         if (!mediaPlayer.isPlaying()) {
             mediaPlayer.start();
-            vibrate();
             Log.d("mediaPlayer", "started");
         }
         return START_STICKY;

@@ -39,6 +39,7 @@
     <string name="email_or_username">Email hoặc tên tài khoản</string>
     <string name="password">Mật khẩu</string>
     <string name="rePassword">Nhập lại mật khẩu</string>
+    <string name="wrong_rePassword">Nhập lại mật khẩu chưa chính xác</string>
     <string name="save_user">Lưu tài khoản</string>
     <string name="login">Đăng nhập</string>
     <string name="manage_device">Quản lý thiết bị</string>
@@ -54,6 +55,8 @@
     <string name="threshold">Cài đặt ngưỡng cảnh báo !</string>
     <string name="offset">Cài đặt giá trị Offset !</string>
     <string name="looping_time">Cài đặt thời gian cập nhật !</string>
+    <string name="not_enough">Vui lòng nhập đủ thông tin !</string>
+    <string name="delete_history">Bạn có muốn xóa lịch sử ?</string>
 
     <string-array name="history_display">
         <item>Biểu đồ</item>

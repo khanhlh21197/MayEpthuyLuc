@@ -31,6 +31,7 @@
                 android:layout_height="wrap_content"
                 android:ems="10"
                 android:hint="Nhập giá trị"
+                android:inputType="numberDecimal"
                 android:singleLine="true" />
         </com.google.android.material.textfield.TextInputLayout>
 

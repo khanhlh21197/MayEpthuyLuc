@@ -79,6 +79,19 @@ public class SignUpFragment extends Fragment implements Result<User> {
     }
 
     private void goToLogIn() {
+        String email = mBinding.txtEmailAddress.getText().toString();
+        String password = mBinding.txtPassword.getText().toString();
+        String rePassword = mBinding.txtRePassword.getText().toString();
+        if (CommonActivity.isNullOrEmpty(email)
+                || CommonActivity.isNullOrEmpty(password)
+                || CommonActivity.isNullOrEmpty(rePassword)) {
+            CommonActivity.showConfirmValidate(getActivity(), R.string.not_enough);
+            return;
+        }
+        if (!rePassword.equals(password)) {
+            CommonActivity.showConfirmValidate(getActivity(), R.string.wrong_rePassword);
+            return;
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             ReplaceFragment.replaceFragment(getActivity(),
                     LoginFragment.newInstance(currentUser.getEmail(),
