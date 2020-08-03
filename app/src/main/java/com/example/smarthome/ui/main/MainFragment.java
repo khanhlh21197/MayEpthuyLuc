@@ -94,10 +94,13 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
     private void checkService() {
         if (TempMonitoringService.isRunning != null) {
             TempMonitoringService.isRunning.observe(this, aBoolean -> {
+                mainFragmentBinding.switchObserve.setChecked(aBoolean);
                 if (!aBoolean) {
                     Toast.makeText(getActivity(), getString(R.string.service_offline), Toast.LENGTH_SHORT).show();
-                    mainFragmentBinding.switchObserve.setChecked(false);
                     mainFragmentBinding.tvObserve.setText(getString(R.string.turn_off_monitoring));
+                } else {
+                    Toast.makeText(getActivity(), getString(R.string.service_online), Toast.LENGTH_SHORT).show();
+                    mainFragmentBinding.tvObserve.setText(getString(R.string.turn_on_monitoring));
                 }
             });
         } else {
@@ -196,6 +199,13 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
     private void stopService() {
         if (!CommonActivity.isNullOrEmpty(tempMonitoringService) && getActivity() != null) {
             Objects.requireNonNull(getActivity()).stopService(tempMonitoringService);
+        }
+    }
+
+    private void restartService() {
+        stopService();
+        if (mainFragmentBinding.switchObserve.isChecked()) {
+            startService();
         }
     }
 
@@ -306,6 +316,7 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         observeAllDevice();
+                        restartService();
                     }
                 });
             } else {
@@ -350,6 +361,7 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 observeAllDevice();
+                                restartService();
                             }
                         });
                     }

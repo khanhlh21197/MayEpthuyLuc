@@ -283,6 +283,7 @@ public class TempMonitoringService extends LifecycleService implements Serializa
     @SuppressLint("CheckResult")
     private void observeDevice(String idDevice) {
         getData().subscribe(devices -> {
+            deviceRef.removeEventListener(deviceEventListener);
             observer(devices, idDevice);
         });
 //        getFBData(item -> {
@@ -293,36 +294,6 @@ public class TempMonitoringService extends LifecycleService implements Serializa
 //        });
     }
 
-    private void test(ArrayList<Device> devices, String idDevice) {
-        List<String> ids = Arrays.asList(idDevice.split(","));
-        for (String id : ids) {
-            if (!id.equals("")) {
-                database.getReference(id).addValueEventListener(new ValueEventListener() {
-                    @RequiresApi(api = Build.VERSION_CODES.O)
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        Device device1 = dataSnapshot.getValue(Device.class);
-                        if (device1 == null) return;
-                        if (CommonActivity.isNullOrEmpty(device1.getNO()) || CommonActivity.isNullOrEmpty(device1.getNG()))
-                            return;
-                        try {
-                            if (Double.parseDouble(device1.getNO()) > Double.parseDouble(device1.getNG())) {
-                                createNotification(device1, ids.indexOf(id));
-                            }
-                        } catch (NumberFormatException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                    }
-                });
-            }
-        }
-    }
-
     @SuppressLint("CheckResult")
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void observer(ArrayList<Device> devices, String idDevice) {
@@ -330,14 +301,13 @@ public class TempMonitoringService extends LifecycleService implements Serializa
         if (devices != null) {
             for (Device device : devices) {
                 if (idSet.contains(device.getId())) {
-                    int index = devices.indexOf(device);
-                    followChild(index).subscribe(device1 -> {
+                    followChild(device.getIndex()).subscribe(device1 -> {
                         if (CommonActivity.isNullOrEmpty(device1.getNO())
                                 || CommonActivity.isNullOrEmpty(device1.getNG()))
                             return;
                         try {
                             if (Double.parseDouble(device1.getNO()) > Double.parseDouble(device1.getNG())) {
-                                createNotification(device1, index);
+                                createNotification(device1, device.getIndex());
                             }
                         } catch (NumberFormatException e) {
                             e.printStackTrace();
@@ -410,7 +380,7 @@ public class TempMonitoringService extends LifecycleService implements Serializa
 
     private Observable<ArrayList<Device>> getData() {
         return Observable.create(emitter -> {
-            deviceRef.addValueEventListener(new ValueEventListener() {
+            deviceEventListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                     GenericTypeIndicator<ArrayList<Device>> t = new GenericTypeIndicator<ArrayList<Device>>() {
@@ -423,7 +393,10 @@ public class TempMonitoringService extends LifecycleService implements Serializa
                 public void onCancelled(@NonNull DatabaseError databaseError) {
 
                 }
-            });
+            };
+            deviceRef.addValueEventListener(deviceEventListener);
         });
     }
+
+    private ValueEventListener deviceEventListener;
 }
