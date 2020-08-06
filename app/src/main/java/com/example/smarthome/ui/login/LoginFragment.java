@@ -88,8 +88,8 @@ public class LoginFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         mActivity = getActivity();
         binding = DataBindingUtil.inflate(inflater, R.layout.login_fragment, container, false);
-        unit();
         getBundleData();
+        unit();
         return binding.getRoot();
     }
 
@@ -150,6 +150,7 @@ public class LoginFragment extends Fragment {
                         }
                     } else {
                         CommonActivity.showConfirmValidate(mActivity, "Sai tên email hoặc mật khẩu!");
+                        binding.progressBar.setVisibility(View.GONE);
                     }
                 });
             }).doOnSubscribe(disposable -> binding.progressBar.setVisibility(View.VISIBLE))
