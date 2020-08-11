@@ -1,6 +1,7 @@
 package com.example.smarthome.ui.login;
 
 import android.util.Log;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.MutableLiveData;
@@ -23,6 +24,8 @@ public class LoginViewModel extends ViewModel {
     public MutableLiveData<String> Email = new MutableLiveData<>();
     public MutableLiveData<String> Password = new MutableLiveData<>();
 
+    public MutableLiveData<Integer> loadingVisibility = new MutableLiveData<>();
+
     private User user = null;
     private String userID = "";
     private ArrayList<User> users = new ArrayList<>();
@@ -32,6 +35,7 @@ public class LoginViewModel extends ViewModel {
     }
 
     ArrayList<User> getAllUsersLiveData() {
+        showLoading();
         getData((DataSnapshot item) -> {
             users.clear();
             for (DataSnapshot d : item.getChildren()) {
@@ -44,8 +48,17 @@ public class LoginViewModel extends ViewModel {
                 }
                 users.add(user);
             }
+            hideLoading();
         });
         return users;
+    }
+
+    void showLoading() {
+        loadingVisibility.setValue(View.VISIBLE);
+    }
+
+    void hideLoading() {
+        loadingVisibility.setValue(View.INVISIBLE);
     }
 
     private void getData(FireBaseCallBack<DataSnapshot> callBack) {

@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -30,6 +31,7 @@ import com.example.smarthome.R;
 import com.example.smarthome.common.BaseBindingAdapter;
 import com.example.smarthome.common.CommonActivity;
 import com.example.smarthome.common.ReplaceFragment;
+import com.example.smarthome.dao.AppDatabase;
 import com.example.smarthome.databinding.MainFragmentBinding;
 import com.example.smarthome.ui.device.DetailDeviceFragment;
 import com.example.smarthome.ui.device.DetailDeviceViewModel;
@@ -49,6 +51,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import io.reactivex.Single;
 import io.reactivex.functions.Function;
 
 public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemClickListener<Device> {
@@ -238,6 +241,7 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
                         } else {
                             viewEmpty();
                             if (idDevice.contains(device.getId())) {
+                                saveDevice(device);
                                 device.setPosition(String.valueOf(devices.indexOf(device)));
                                 devicesOfUser.add(device);
                             }
@@ -437,5 +441,20 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
             result++;
         }
         return -1;
+    }
+
+    @SuppressLint("CheckResult")
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void saveDevice(Device device) {
+        Single.create(emitter -> {
+            Device d = new Device(device.getId(), device.getNO(), device.getTime());
+            AppDatabase.getDatabase(getActivity()).deviceDAO().insertDevice(d);
+        }).subscribe((o, throwable) -> {
+            if (throwable == null) {
+                Log.d("saveDevice", o.toString());
+            } else {
+                Log.d("Error", throwable.toString());
+            }
+        });
     }
 }

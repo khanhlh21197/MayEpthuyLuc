@@ -14,7 +14,7 @@
 
     <application
         android:allowBackup="true"
-        android:icon="@drawable/ic_temp"
+        android:icon="@drawable/ic_fever"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
@@ -22,7 +22,8 @@
         <receiver
             android:name=".broadcast.NetworkStateMonitor"
             android:enabled="true"
-            android:exported="true"></receiver>
+            android:exported="true"
+            tools:ignore="Instantiatable" />
 
         <service
             android:name=".warning.MyFirebaseMessagingService"

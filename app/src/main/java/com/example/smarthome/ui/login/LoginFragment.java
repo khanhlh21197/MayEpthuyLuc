@@ -2,14 +2,18 @@ package com.example.smarthome.ui.login;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -66,6 +70,7 @@ public class LoginFragment extends Fragment {
     private int progressStatus = 0;
     private ArrayList<User> users = new ArrayList<>();
     private User user = null;
+    private Dialog progressDialog;
 
     public static LoginFragment newInstance(String email, String password) {
 
@@ -117,6 +122,8 @@ public class LoginFragment extends Fragment {
         initSharedPreferences();
         binding.setLifecycleOwner(this);
         binding.setLoginViewModel(loginViewModel);
+
+        initProgress();
 
         FirebaseMultiQuery query = new FirebaseMultiQuery(userRef);
         final Task<Map<DatabaseReference, DataSnapshot>> allLoad = query.start();
@@ -193,6 +200,36 @@ public class LoginFragment extends Fragment {
         binding.signUp.setOnClickListener(v -> {
             ReplaceFragment.replaceFragment(mActivity, SignUpFragment.newInstance(), true);
         });
+    }
+
+    private void initProgress() {
+        progressDialog = new Dialog(requireActivity());
+
+        Window window = progressDialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            window.requestFeature(Window.FEATURE_NO_TITLE);
+        }
+        progressDialog.
+                setContentView(R.layout.progress_dialog);
+        progressDialog.
+                setCancelable(true);
+        progressDialog.
+                setCanceledOnTouchOutside(false);
+
+        loginViewModel.loadingVisibility.observe(this, visibility -> {
+            if (visibility == View.VISIBLE) showLoading();
+            else hideLoading();
+        });
+    }
+
+    private void hideLoading() {
+        progressDialog.dismiss();
+    }
+
+    private void showLoading() {
+        progressDialog.show();
+
     }
 
     private boolean isLoginSuccess(User inputUser) {
