@@ -1,6 +1,10 @@
 package com.example.smarthome.ui.main;
 
+import android.annotation.SuppressLint;
+import android.os.Build;
+
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
@@ -12,11 +16,18 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+
+import io.reactivex.Observable;
+
 public class MainViewModel extends ViewModel {
     // TODO: Implement the ViewModel
     MutableLiveData<Device> deviceMutableLiveData = new MutableLiveData<>();
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private DatabaseReference deviceRef = database.getReference("devices");
+    private ArrayList<Device> devices = new ArrayList<>();
 
     public MutableLiveData<DataSnapshot> getAllDevices() {
         MutableLiveData<DataSnapshot> liveDataSnapShot = new MutableLiveData<>();
@@ -81,5 +92,49 @@ public class MainViewModel extends ViewModel {
 
             }
         });
+    }
+
+    @SuppressLint("CheckResult")
+    public Observable<Device> test(String idDevice) {
+        String[] ids = idDevice.split(",");
+        return Observable.create(emitter -> {
+            for (String id : ids) {
+                if (!id.equals("")) {
+                    database.getReference(id).addValueEventListener(new ValueEventListener() {
+                        @RequiresApi(api = Build.VERSION_CODES.O)
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            Device device = dataSnapshot.getValue(Device.class);
+                            if (device != null) {
+                                emitter.onNext(device);
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void add(Device device) {
+        Set<String> idSet = new HashSet<>();
+        if (idSet.add(device.getId())) {
+            devices.add(device);
+        } else {
+            devices.set((getIndex(idSet, device.getId())), device);
+        }
+    }
+
+    public static int getIndex(Set<? extends Object> set, Object value) {
+        int result = 0;
+        for (Object entry : set) {
+            if (entry.equals(value)) return result;
+            result++;
+        }
+        return -1;
     }
 }

@@ -25,7 +25,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_marginStart="4dp"
-            android:layout_weight="4"
+            android:layout_weight="5"
             android:gravity="center_vertical"
             android:textColor="@color/red"
             android:textSize="@dimen/_12ssp" />
@@ -40,7 +40,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_marginStart="4dp"
-            android:layout_weight="6"
+            android:layout_weight="5"
             android:gravity="center_vertical"
             android:paddingStart="4dp"
             android:textColor="@color/red"

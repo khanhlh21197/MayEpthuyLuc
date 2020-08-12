@@ -8,11 +8,17 @@
         <variable
             name="detail_device"
             type="com.example.smarthome.ui.device.model.Device" />
+
+        <variable
+            name="vm"
+            type="com.example.smarthome.ui.device.DetailDeviceViewModel" />
     </data>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:animateLayoutChanges="true"
+        android:fillViewport="true">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
@@ -40,6 +46,16 @@
                 android:src="@mipmap/ic_edit"
                 app:layout_constraintBottom_toBottomOf="@id/txtDeviceName"
                 app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@id/txtDeviceName" />
+
+            <ImageView
+                android:id="@+id/reset"
+                android:layout_width="@dimen/_24sdp"
+                android:layout_height="@dimen/_24sdp"
+                android:layout_marginStart="@dimen/_8sdp"
+                android:src="@drawable/ic_baseline_refresh_24"
+                app:layout_constraintBottom_toBottomOf="@id/txtDeviceName"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="@id/txtDeviceName" />
 
             <LinearLayout
@@ -160,7 +176,7 @@
                     android:padding="@dimen/_4sdp"
                     android:text="Nhiệt độ"
                     android:textAllCaps="true"
-                    android:textSize="@dimen/_32ssp" />
+                    android:textSize="@dimen/_28ssp" />
 
                 <TextView
                     android:id="@+id/txtHumanTemp"
@@ -169,77 +185,127 @@
                     android:gravity="center"
                     android:text="@{detail_device.temp}"
                     android:textColor="@color/red"
-                    android:textSize="@dimen/_64ssp"
+                    android:textSize="@dimen/_48ssp"
                     tools:text="37.4" />
 
             </LinearLayout>
 
             <LinearLayout
-                android:id="@+id/lnWarning"
+                android:id="@+id/lnConfig"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/_16sdp"
                 android:background="@drawable/bg_textview"
                 android:orientation="vertical"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/lnHumanTemp">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:padding="@dimen/_4sdp"
-                    android:text="Cài ngưỡng cảnh báo"
-                    android:textAllCaps="true"
+                    android:text="Ngưỡng, offset, thời gian cập nhật"
                     android:textSize="@dimen/_18ssp" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#000" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal">
+                    android:layout_marginStart="8dp"
+                    android:orientation="horizontal"
+                    android:padding="4dp">
 
-                    <EditText
-                        android:id="@+id/edtThreshold"
+                    <TextView
                         android:layout_width="0dp"
-                        android:layout_height="match_parent"
+                        android:layout_height="wrap_content"
                         android:layout_weight="6"
-                        android:background="@null"
-                        android:hint="Nhập giá trị ngưỡng"
-                        android:inputType="numberDecimal"
-                        android:paddingLeft="@dimen/_8sdp" />
+                        android:text="Ngưỡng cảnh báo: "
+                        android:textSize="@dimen/_16ssp" />
 
-                    <Button
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="3"
+                        android:text="@{detail_device.nG}"
+                        android:textColor="@color/red"
+                        android:textSize="@dimen/_16ssp"
+                        tools:text="37 độ" />
+
+                    <ImageView
                         android:id="@+id/btnThreshold"
                         android:layout_width="0dp"
                         android:layout_height="match_parent"
-                        android:layout_weight="4"
-                        android:text="cài ngưỡng"
-                        android:textColor="@color/red" />
+                        android:layout_weight="1"
+                        android:src="@drawable/ic_settings" />
 
                 </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:orientation="horizontal">
+                    android:layout_marginStart="8dp"
+                    android:orientation="horizontal"
+                    android:padding="4dp">
 
                     <TextView
                         android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_marginStart="@dimen/_8sdp"
-                        android:layout_weight="1"
-                        android:text="Ngưỡng hiện tại: "
+                        android:layout_height="wrap_content"
+                        android:layout_weight="6"
+                        android:text="Offset: "
                         android:textSize="@dimen/_16ssp" />
 
                     <TextView
                         android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:text="@{detail_device.nG}"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="3"
+                        android:text="@{detail_device.nDU}"
                         android:textColor="@color/red"
+                        android:textSize="@dimen/_16ssp"
+                        tools:text="37 độ" />
+
+                    <ImageView
+                        android:id="@+id/btnOffset"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:src="@drawable/ic_settings" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:orientation="horizontal"
+                    android:padding="4dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="6"
+                        android:text="Thời gian (s): "
                         android:textSize="@dimen/_16ssp" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="3"
+                        android:text="@{detail_device.nCL}"
+                        android:textColor="@color/red"
+                        android:textSize="@dimen/_16ssp"
+                        tools:text="37 độ" />
+
+                    <ImageView
+                        android:id="@+id/btnLoopingTime"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:src="@drawable/ic_settings" />
 
                 </LinearLayout>
 
@@ -254,7 +320,7 @@
                 android:visibility="gone"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/lnWarning">
+                app:layout_constraintTop_toBottomOf="@+id/lnConfig">
 
                 <TextView
                     android:id="@+id/tvTotal"
@@ -276,39 +342,69 @@
                 android:id="@+id/btnWarning"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:text="Tắt cảnh báo"
                 android:textColor="@color/red"
                 android:visibility="gone"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/lnWarning"
+                app:layout_constraintTop_toBottomOf="@id/lnConfig"
                 tools:visibility="visible" />
+
+            <LinearLayout
+                android:id="@+id/llHistoryDisplay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/btnWarning">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="Hiển thị lịch sử: "
+                    android:textSize="@dimen/_14ssp" />
+
+                <Spinner
+                    android:id="@+id/spnHistoryDisplay"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent" />
+
+                <TextView
+                    android:id="@+id/deleteHistory"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="end"
+                    android:text="Xóa lịch sử"
+                    android:textColor="@color/red"
+                    android:textSize="@dimen/_14ssp" />
+
+            </LinearLayout>
+
+            <com.github.mikephil.charting.charts.CombinedChart
+                android:id="@+id/combineChart"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginTop="@dimen/_8sdp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/llHistoryDisplay" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/listHistory"
                 android:layout_width="match_parent"
-                android:layout_height="@dimen/_200sdp"
+                android:layout_height="200dp"
                 android:layout_marginTop="@dimen/_8sdp"
-                android:nestedScrollingEnabled="false"
-                android:visibility="visible"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/btnWarning"
+                app:layout_constraintTop_toBottomOf="@id/llHistoryDisplay"
                 tools:itemCount="3"
                 tools:listitem="@layout/item_history"
                 tools:targetApi="lollipop" />
-
-            <Button
-                android:id="@+id/btnDeleteHistory"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Xóa lịch sử"
-                android:visibility="gone"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/listHistory" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

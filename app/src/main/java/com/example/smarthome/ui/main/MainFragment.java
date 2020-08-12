@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,9 +31,11 @@ import com.example.smarthome.R;
 import com.example.smarthome.common.BaseBindingAdapter;
 import com.example.smarthome.common.CommonActivity;
 import com.example.smarthome.common.ReplaceFragment;
+import com.example.smarthome.dao.AppDatabase;
 import com.example.smarthome.databinding.MainFragmentBinding;
 import com.example.smarthome.ui.device.DetailDeviceFragment;
 import com.example.smarthome.ui.device.DetailDeviceViewModel;
+import com.example.smarthome.ui.device.LightConfigPopup;
 import com.example.smarthome.ui.device.model.Device;
 import com.example.smarthome.ui.login.LoginViewModel;
 import com.example.smarthome.utils.FireBaseCallBack;
@@ -44,7 +48,12 @@ import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
+
+import io.reactivex.Single;
+import io.reactivex.functions.Function;
 
 public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemClickListener<Device> {
     private static final String MyPREFERENCES = "MyPrefs1";
@@ -81,13 +90,27 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
         getBundleData();
         mainFragmentBinding = DataBindingUtil.inflate(inflater, R.layout.main_fragment, container, false);
         unit();
+        checkService();
         onFabClicked();
-        editDeviceName();
         return mainFragmentBinding.getRoot();
     }
 
-    private void editDeviceName() {
-
+    private void checkService() {
+        if (TempMonitoringService.isRunning != null) {
+            TempMonitoringService.isRunning.observe(this, aBoolean -> {
+                mainFragmentBinding.switchObserve.setChecked(aBoolean);
+                if (!aBoolean) {
+                    Toast.makeText(getActivity(), getString(R.string.service_offline), Toast.LENGTH_SHORT).show();
+                    mainFragmentBinding.tvObserve.setText(getString(R.string.turn_off_monitoring));
+                } else {
+                    Toast.makeText(getActivity(), getString(R.string.service_online), Toast.LENGTH_SHORT).show();
+                    mainFragmentBinding.tvObserve.setText(getString(R.string.turn_on_monitoring));
+                }
+            });
+        } else {
+            mainFragmentBinding.switchObserve.setChecked(false);
+            mainFragmentBinding.tvObserve.setText(getString(R.string.turn_off_monitoring));
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -141,13 +164,18 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
 
     private void onSwitchObserveChange() {
         mainFragmentBinding.tvObserve.setText(getString(R.string.turn_on_monitoring));
-        if (mainFragmentBinding.switchObserve.isChecked()) {
-            startService();
-        } else {
-            stopService();
-        }
+//        if (mainFragmentBinding.switchObserve.isChecked()) {
+//            startService();
+//        } else {
+//            stopService();
+//        }
         mainFragmentBinding.switchObserve.setOnCheckedChangeListener((buttonView, isChecked) -> {
-
+            mainFragmentBinding.turningSwitch.setVisibility(View.VISIBLE);
+            mainFragmentBinding.switchObserve.setVisibility(View.GONE);
+            new Handler().postDelayed(() -> {
+                mainFragmentBinding.turningSwitch.setVisibility(View.GONE);
+                mainFragmentBinding.switchObserve.setVisibility(View.VISIBLE);
+            }, 2000);
             boolean switchStatus = mainFragmentBinding.switchObserve.isChecked();
 
             @SuppressLint("CommitPrefEdits") SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -165,12 +193,23 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
     }
 
     private void startService() {
-        Objects.requireNonNull(getActivity()).startService(tempMonitoringService);
+        tempMonitoringService = new Intent(getActivity(), TempMonitoringService.class);
+        tempMonitoringService.putExtra("idDevice", idDevice);
+        if (getActivity() != null) {
+            Objects.requireNonNull(getActivity()).startService(tempMonitoringService);
+        }
     }
 
     private void stopService() {
-        if (!CommonActivity.isNullOrEmpty(tempMonitoringService)) {
+        if (!CommonActivity.isNullOrEmpty(tempMonitoringService) && getActivity() != null) {
             Objects.requireNonNull(getActivity()).stopService(tempMonitoringService);
+        }
+    }
+
+    private void restartService() {
+        stopService();
+        if (mainFragmentBinding.switchObserve.isChecked()) {
+            startService();
         }
     }
 
@@ -185,7 +224,14 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
+    @SuppressLint("CheckResult")
+    private void test() {
+        mainViewModel.test(idDevice).map((Function<Device, Object>) this::add).subscribe(o -> adapter.setData((ArrayList<Device>) o));
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
     private void observeAllDevice() {
+//        test();
         mainViewModel.getAllDevices().observe(Objects.requireNonNull(getActivity()), dataSnapshot -> {
             ArrayList<Device> devicesOfUser = new ArrayList<>();
             getData(dataSnapshot, devices -> {
@@ -196,6 +242,8 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
                         } else {
                             viewEmpty();
                             if (idDevice.contains(device.getId())) {
+                                saveDevice(device);
+                                device.setPosition(String.valueOf(devices.indexOf(device)));
                                 devicesOfUser.add(device);
                             }
                         }
@@ -268,11 +316,12 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
 
         alert.setPositiveButton(getString(R.string.ok), (dialog, which) -> {
             if (txtInputDevice.getText() != null) {
-                idDevice += txtInputDevice.getText().toString();
+                idDevice += txtInputDevice.getText().toString() + ",";
                 loginViewModel.updateDevice(idDevice, new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         observeAllDevice();
+                        restartService();
                     }
                 });
             } else {
@@ -283,10 +332,11 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
         dialog.show();
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onItemClick(Device item) {
         ReplaceFragment.replaceFragment(getActivity(),
-                DetailDeviceFragment.newInstance(item, idDevice),
+                DetailDeviceFragment.newInstance(item, item.getId()),
                 true);
     }
 
@@ -300,6 +350,14 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
     @Override
     public void onItemLongClick(Device item) {
         deleteDevice(item);
+//        showPopup();
+    }
+
+    private void showPopup() {
+        LightConfigPopup lightConfigPopup = new LightConfigPopup();
+        if (getFragmentManager() != null) {
+            lightConfigPopup.show(getFragmentManager(), "LightConfigPopup");
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -316,6 +374,7 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {
                                 observeAllDevice();
+                                restartService();
                             }
                         });
                     }
@@ -362,7 +421,7 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
         alert.setPositiveButton(getString(R.string.ok), (dialog, which) -> {
             if (!CommonActivity.isNullOrEmpty(edtDeviceName.getText().toString())) {
                 device.setName(edtDeviceName.getText().toString());
-                viewModel.setName(indexOfDevice, device.getName());
+                viewModel.setName(Integer.parseInt(device.getPosition()), device.getName());
                 txtWarning.setVisibility(View.GONE);
             } else {
                 txtWarning.setVisibility(View.VISIBLE);
@@ -370,5 +429,41 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
         });
         AlertDialog dialog = alert.create();
         dialog.show();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private ArrayList<Device> add(Device device) {
+        ArrayList<Device> devices = new ArrayList<>();
+        Set<String> idSet = new HashSet<>();
+        if (idSet.add(device.getId())) {
+            devices.add(device);
+        } else {
+            devices.set((getIndex(idSet, device.getId())), device);
+        }
+        return devices;
+    }
+
+    public static int getIndex(Set<? extends Object> set, Object value) {
+        int result = 0;
+        for (Object entry : set) {
+            if (entry.equals(value)) return result;
+            result++;
+        }
+        return -1;
+    }
+
+    @SuppressLint("CheckResult")
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void saveDevice(Device device) {
+        Single.create(emitter -> {
+            Device d = new Device(device.getId(), device.getNO(), device.getTime());
+            AppDatabase.getDatabase(getActivity()).deviceDAO().insertDevice(d);
+        }).subscribe((o, throwable) -> {
+            if (throwable == null) {
+                Log.d("saveDevice", o.toString());
+            } else {
+                Log.d("Error", throwable.toString());
+            }
+        });
     }
 }

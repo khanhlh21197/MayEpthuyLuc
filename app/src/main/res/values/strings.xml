@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TechNoCorp</string>
+    <string name="app_name">Giám sát nhiệt độ</string>
     <string name="chon_ngay">Chọn ngày</string>
     <string name="errorProcess">Có lỗi xảy ra trong quá trình xử lý. Vui lòng kiểm tra lại.</string>
     <string name="ok">Đồng ý</string>
@@ -39,13 +39,28 @@
     <string name="email_or_username">Email hoặc tên tài khoản</string>
     <string name="password">Mật khẩu</string>
     <string name="rePassword">Nhập lại mật khẩu</string>
+    <string name="wrong_rePassword">Nhập lại mật khẩu chưa chính xác</string>
     <string name="save_user">Lưu tài khoản</string>
     <string name="login">Đăng nhập</string>
     <string name="manage_device">Quản lý thiết bị</string>
     <string name="no_device">Không có thiết bị, vui lòng thêm thiết bị</string>
-    <string name="turn_on_monitoring">Bật theo dõi nhiệt độ</string>
-    <string name="turn_off_monitoring">Tắt theo dõi nhiệt độ</string>
+    <string name="turn_on_monitoring">Bật theo dõi thiết bị</string>
+    <string name="turn_off_monitoring">Tắt theo dõi thiết bị</string>
     <string name="input_device_name">Vui lòng nhập tên thiết bị</string>
     <string name="delete">Xóa</string>
+    <string name="on">Đã bật</string>
+    <string name="off">Đã tắt</string>
     <string name="change_device_name">Đổi tên thiết bị</string>
+    <string name="service_offline">Cảnh báo nhiệt độ đã bị tắt !</string>
+    <string name="service_online">Cảnh báo nhiệt độ đã bật !</string>
+    <string name="threshold">Cài đặt ngưỡng cảnh báo !</string>
+    <string name="offset">Cài đặt giá trị Offset !</string>
+    <string name="looping_time">Cài đặt thời gian cập nhật !</string>
+    <string name="not_enough">Vui lòng nhập đủ thông tin !</string>
+    <string name="delete_history">Bạn có muốn xóa lịch sử ?</string>
+
+    <string-array name="history_display">
+        <item>Biểu đồ</item>
+        <item>Bảng</item>
+    </string-array>
 </resources>

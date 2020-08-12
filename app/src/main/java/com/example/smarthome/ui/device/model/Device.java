@@ -2,6 +2,7 @@ package com.example.smarthome.ui.device.model;
 
 import android.annotation.SuppressLint;
 import android.os.Build;
+import android.view.View;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -28,10 +29,11 @@ import java.util.Map;
 public class Device implements Serializable {
     @PrimaryKey(autoGenerate = true)
     @NonNull
-    private int uid;
+    private int autoGeneID;
 
     @SerializedName("id")
     @Expose
+    @NonNull
     private String id;
     @SerializedName("user")
     @Expose
@@ -58,12 +60,11 @@ public class Device implements Serializable {
     private String nDU;
     @SerializedName("NG")
     @PropertyName("NG")
-    @ColumnInfo(name = "ng")
     @Expose
     private String nG;
     @SerializedName("NO")
-    @ColumnInfo(name = "no")
     @PropertyName("NO")
+    @ColumnInfo(name = "no")
     @Expose
     private String nO;
     @PropertyName("total")
@@ -71,27 +72,60 @@ public class Device implements Serializable {
     @PropertyName("highTemp")
     private String highTemp;
     @PropertyName("time")
+    @ColumnInfo(name = "time")
     private String time;
     @PropertyName("picture")
     @Expose
     private String picture;
+    private int index;
+    private String temp;
+    private String position;
+    private boolean active;
 
-    public Device() {
+    public boolean isActive() {
+        return active;
     }
 
-    public Device(@NonNull String id, String nO, String nG, String time) {
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+    public int visibleOn() {
+        return active ? View.VISIBLE : View.GONE;
+    }
+
+    public int visibleOff() {
+        return active ? View.GONE : View.VISIBLE;
+    }
+
+    public Device(@NonNull String id, String nO, String time) {
         this.id = id;
         this.nO = nO;
-        this.nG = nG;
         this.time = time;
     }
 
-    public int getUid() {
-        return uid;
+    public int getIndex() {
+        return index;
     }
 
-    public void setUid(int uid) {
-        this.uid = uid;
+    public void setIndex(int index) {
+        this.index = index;
+    }
+
+    public int getAutoGeneID() {
+        return autoGeneID;
+    }
+
+    public void setAutoGeneID(int autoGeneID) {
+        this.autoGeneID = autoGeneID;
+    }
+
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
     }
 
     public String getPicture() {
@@ -211,6 +245,9 @@ public class Device implements Serializable {
         this.nO = nO;
     }
 
+    public Device() {
+    }
+
     public String getName() {
         return name;
     }
@@ -237,6 +274,7 @@ public class Device implements Serializable {
 
     public String getAverageND() {
         int sum = 0;
+        if (nD == null) return "";
         String[] arrayND = nD.split("&");
         for (String c : arrayND) {
             sum += Integer.parseInt(c);
@@ -252,6 +290,10 @@ public class Device implements Serializable {
         } else {
             return name;
         }
+    }
+
+    public void setTemp(String temp) {
+        this.temp = temp;
     }
 
     @Exclude

@@ -26,7 +26,7 @@
                 android:layout_height="@dimen/_72sdp"
                 android:layout_gravity="center_horizontal"
                 android:layout_marginBottom="@dimen/_24sdp"
-                android:src="@drawable/ic_smart_home" />
+                android:src="@drawable/ic_fever" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/emailAddress"
@@ -80,12 +80,19 @@
                     android:text="@={SignUpViewModel.rePassword}" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:visibility="@{SignUpViewModel.loading}" />
+
             <!-- Signup Button -->
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/btn_signup"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/_24sdp"
+                android:layout_marginTop="8dp"
                 android:layout_marginBottom="@dimen/_24sdp"
                 android:background="@drawable/border_button_create_account"
                 android:clickable="true"

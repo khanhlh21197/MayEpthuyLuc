@@ -2,15 +2,18 @@ package com.example.smarthome.ui.login;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -45,6 +48,9 @@ import com.google.zxing.integration.android.IntentResult;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import io.reactivex.Observable;
 
 public class LoginFragment extends Fragment {
     public static final String ARG_EMAIL = "ARG_EMAIL";
@@ -64,6 +70,7 @@ public class LoginFragment extends Fragment {
     private int progressStatus = 0;
     private ArrayList<User> users = new ArrayList<>();
     private User user = null;
+    private Dialog progressDialog;
 
     public static LoginFragment newInstance(String email, String password) {
 
@@ -86,8 +93,8 @@ public class LoginFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         mActivity = getActivity();
         binding = DataBindingUtil.inflate(inflater, R.layout.login_fragment, container, false);
-        unit();
         getBundleData();
+        unit();
         return binding.getRoot();
     }
 
@@ -108,12 +115,15 @@ public class LoginFragment extends Fragment {
         FirebaseUser currentUser = mAuth.getCurrentUser();
     }
 
+    @SuppressLint("CheckResult")
     private void unit() {
         loginViewModel = ViewModelProviders.of((FragmentActivity) mActivity).get(LoginViewModel.class);
         mAuth = FirebaseAuth.getInstance();
         initSharedPreferences();
         binding.setLifecycleOwner(this);
         binding.setLoginViewModel(loginViewModel);
+
+        initProgress();
 
         FirebaseMultiQuery query = new FirebaseMultiQuery(userRef);
         final Task<Map<DatabaseReference, DataSnapshot>> allLoad = query.start();
@@ -122,27 +132,69 @@ public class LoginFragment extends Fragment {
 
         binding.btnLogin.setOnClickListener(v -> {
             binding.progressBar.setVisibility(View.VISIBLE);
-            new Handler().postDelayed(() -> {
-                binding.progressBar.setVisibility(View.GONE);
-                String message = "";
-                User inputUser = new User(loginViewModel.Email.getValue(),
-                        loginViewModel.Password.getValue());
-                if (CommonActivity.isNullOrEmpty(loginViewModel.Email.getValue())
-                        || CommonActivity.isNullOrEmpty(loginViewModel.Password.getValue())) {
-                    message = "Vui lòng điền đủ thông tin đăng nhập!";
-                    CommonActivity.showConfirmValidate(mActivity, message);
-                    return;
-                }
-                if (isLoginSuccess(inputUser)) {
-                    message = "Đăng nhập thành công với " + inputUser.getEmail();
-                    CommonActivity.showConfirmValidate(mActivity, message);
-                } else {
-                    message = "Sai tên email hoặc mật khẩu!";
-                    CommonActivity.showConfirmValidate(mActivity, message);
-                    return;
-                }
-                onLoginSuccess();
-            }, 1000);
+            User inputUser = new User(loginViewModel.Email.getValue(),
+                    loginViewModel.Password.getValue());
+            if (CommonActivity.isNullOrEmpty(loginViewModel.Email.getValue())
+                    || CommonActivity.isNullOrEmpty(loginViewModel.Password.getValue())) {
+                CommonActivity.showConfirmValidate(mActivity, "Vui lòng điền đủ thông tin đăng nhập!");
+                return;
+            }
+            Observable.create(emitter -> {
+                FirebaseAuth.getInstance().signInWithEmailAndPassword(
+                        inputUser.getEmail(),
+                        inputUser.getPassword()
+                ).addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (User user : users) {
+                            if (user.getEmail().equals(inputUser.getEmail())) {
+                                loginViewModel.setUserID(user.getUid());
+                                Log.d("isLoginSuccess", user.getUid());
+                                this.user = user;
+                                idDevice = user.getIdDevice();
+                                onLoginSuccess(inputUser);
+                                break;
+                            }
+                        }
+                    } else {
+                        CommonActivity.showConfirmValidate(mActivity, "Sai tên email hoặc mật khẩu!");
+                        binding.progressBar.setVisibility(View.GONE);
+                    }
+                });
+            }).doOnSubscribe(disposable -> binding.progressBar.setVisibility(View.VISIBLE))
+                    .doOnTerminate(() -> binding.progressBar.setVisibility(View.GONE))
+                    .subscribe();
+//            new Handler().postDelayed(() -> {
+//                binding.progressBar.setVisibility(View.GONE);
+//                String message = "";
+//                User inputUser = new User(loginViewModel.Email.getValue(),
+//                        loginViewModel.Password.getValue());
+//                if (CommonActivity.isNullOrEmpty(loginViewModel.Email.getValue())
+//                        || CommonActivity.isNullOrEmpty(loginViewModel.Password.getValue())) {
+//                    message = "Vui lòng điền đủ thông tin đăng nhập!";
+//                    CommonActivity.showConfirmValidate(mActivity, message);
+//                    return;
+//                }
+//                FirebaseAuth.getInstance().signInWithEmailAndPassword(
+//                        inputUser.getEmail(),
+//                        inputUser.getPassword()
+//                ).addOnCompleteListener(task -> {
+//                    if (task.isSuccessful()) {
+//                        for (User user : users) {
+//                            if (user.getEmail().equals(inputUser.getEmail())) {
+//                                loginViewModel.setUserID(user.getUid());
+//                                Log.d("isLoginSuccess", user.getUid());
+//                                this.user = user;
+//                                idDevice = user.getIdDevice();
+//                                CommonActivity.showConfirmValidate(mActivity, "Đăng nhập thành công với " + inputUser.getEmail());
+//                                break;
+//                            }
+//                        }
+//                        onLoginSuccess();
+//                    } else {
+//                        CommonActivity.showConfirmValidate(mActivity, "Sai tên email hoặc mật khẩu!");
+//                    }
+//                });
+//            }, 1000);
         });
 
         binding.signUp.setOnClickListener(v -> {
@@ -150,22 +202,59 @@ public class LoginFragment extends Fragment {
         });
     }
 
-    private boolean isLoginSuccess(User inputUser) {
-        if (!CommonActivity.isNullOrEmpty(users)) {
-            for (User user : users) {
-                if (user.getEmail().equals(inputUser.getEmail())
-                        && user.getPassword().equals(inputUser.getPassword())) {
-                    loginViewModel.setUserID(user.getUid());
-                    Log.d("isLoginSuccess", user.getUid());
-                    this.user = user;
-                    idDevice = user.getIdDevice();
-                    return true;
-                }
-            }
-        } else {
-            return false;
+    private void initProgress() {
+        progressDialog = new Dialog(requireActivity());
+
+        Window window = progressDialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            window.requestFeature(Window.FEATURE_NO_TITLE);
         }
-        return false;
+        progressDialog.
+                setContentView(R.layout.progress_dialog);
+        progressDialog.
+                setCancelable(true);
+        progressDialog.
+                setCanceledOnTouchOutside(false);
+
+        loginViewModel.loadingVisibility.observe(this, visibility -> {
+            if (visibility == View.VISIBLE) showLoading();
+            else hideLoading();
+        });
+    }
+
+    private void hideLoading() {
+        progressDialog.dismiss();
+    }
+
+    private void showLoading() {
+        progressDialog.show();
+
+    }
+
+    private boolean isLoginSuccess(User inputUser) {
+        AtomicBoolean success = new AtomicBoolean(false);
+        if (!CommonActivity.isNullOrEmpty(users)) {
+            FirebaseAuth.getInstance().signInWithEmailAndPassword(
+                    inputUser.getEmail(),
+                    inputUser.getPassword()
+            ).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    for (User user : users) {
+                        if (user.getEmail().equals(inputUser.getEmail())) {
+                            loginViewModel.setUserID(user.getUid());
+                            Log.d("isLoginSuccess", user.getUid());
+                            this.user = user;
+                            idDevice = user.getIdDevice();
+                            success.set(true);
+                        }
+                    }
+                }
+            });
+        } else {
+            success.set(false);
+        }
+        return success.get();
     }
 
     private void initSharedPreferences() {
@@ -182,7 +271,8 @@ public class LoginFragment extends Fragment {
         }
     }
 
-    private void onLoginSuccess() {
+    private void onLoginSuccess(User inputUser) {
+        Toast.makeText(mActivity, "Đăng nhập thành công với " + inputUser.getEmail(), Toast.LENGTH_SHORT).show();
         if (binding.saveUser.isChecked()) {
             String email = user.getEmail();
             String password = user.getPassword();
@@ -221,7 +311,7 @@ public class LoginFragment extends Fragment {
                 -> Toast.makeText(mActivity, "Cancel clicked", Toast.LENGTH_SHORT).show());
 
         alert.setPositiveButton("Đồng ý", (dialog, which) -> {
-            idDevice += txtInputDevice.getText().toString();
+            idDevice += txtInputDevice.getText().toString() + ",";
             loginViewModel.updateDevice(idDevice, new OnCompleteListener<Void>() {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {

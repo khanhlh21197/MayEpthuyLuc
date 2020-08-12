@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +27,7 @@ import com.example.smarthome.ui.device.DetailDeviceFragment;
 import com.example.smarthome.ui.device.model.Device;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.suke.widget.SwitchButton;
 
 import java.util.List;
 import java.util.Locale;
@@ -94,18 +96,53 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
         if (item instanceof Device) {
             Device device = (Device) item;
             try {
-                holder.itemView.findViewById(R.id.imgEdit).setOnClickListener(v -> {
-                    onItemClickListener.onBtnEditClick(item, position);
+                holder.itemView.findViewById(R.id.imgEdit).setOnClickListener(v
+                        -> onItemClickListener.onBtnEditClick(item, position));
+                SwitchButton switchButton = holder.itemView.findViewById(R.id.onOffSwitch);
+                switchButton.setOnCheckedChangeListener((view, isChecked) -> {
+                    if (isChecked) {
+                        holder.itemView.findViewById(R.id.progressChangeStatus).setVisibility(View.VISIBLE);
+                        new Handler().postDelayed(() -> {
+                            holder.itemView.findViewById(R.id.progressChangeStatus).setVisibility(View.GONE);
+                            holder.itemView.findViewById(R.id.txtTemp).setVisibility(View.VISIBLE);
+                            holder.itemView.findViewById(R.id.txtOn).setVisibility(View.VISIBLE);
+                            holder.itemView.findViewById(R.id.txtOff).setVisibility(View.GONE);
+
+                            holder.itemView.findViewById(R.id.off).setVisibility(View.GONE);
+                            holder.itemView.findViewById(R.id.off).animate().alpha(0.0f);
+
+                            holder.itemView.findViewById(R.id.on).setVisibility(View.VISIBLE);
+                            holder.itemView.findViewById(R.id.on).animate().alpha(1.0f);
+                        }, 1000);
+                    } else {
+                        holder.itemView.findViewById(R.id.progressChangeStatus).setVisibility(View.VISIBLE);
+                        new Handler().postDelayed(() -> {
+                            holder.itemView.findViewById(R.id.progressChangeStatus).setVisibility(View.GONE);
+                            holder.itemView.findViewById(R.id.txtTemp).setVisibility(View.GONE);
+                            holder.itemView.findViewById(R.id.txtOn).setVisibility(View.GONE);
+                            holder.itemView.findViewById(R.id.txtOff).setVisibility(View.VISIBLE);
+
+                            holder.itemView.findViewById(R.id.on).setVisibility(View.GONE);
+                            holder.itemView.findViewById(R.id.on).animate().alpha(0.0f);
+
+                            holder.itemView.findViewById(R.id.off).setVisibility(View.VISIBLE);
+                            holder.itemView.findViewById(R.id.off).animate().alpha(1.0f);
+                        }, 1000);
+                    }
                 });
                 if (!CommonActivity.isNullOrEmpty(device.getNO())
                         && !CommonActivity.isNullOrEmpty(device.getNG())) {
-                    if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
-                        holder.itemView.findViewById(R.id.imgWarning).setVisibility(View.VISIBLE);
-                        holder.itemView.findViewById(R.id.imgWarning)
-                                .setAnimation(DetailDeviceFragment.createFlashingAnimation());
+                    try {
+                        if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
+                            holder.itemView.findViewById(R.id.imgWarning).setVisibility(View.VISIBLE);
+                            holder.itemView.findViewById(R.id.imgWarning)
+                                    .setAnimation(DetailDeviceFragment.createFlashingAnimation());
 //                        createNotification(device.getNO(), device.getId());
-                    } else {
-                        holder.itemView.findViewById(R.id.imgWarning).setVisibility(View.GONE);
+                        } else {
+                            holder.itemView.findViewById(R.id.imgWarning).setVisibility(View.GONE);
+                        }
+                    } catch (NumberFormatException e) {
+                        e.printStackTrace();
                     }
                 }
                 if (!CommonActivity.isNullOrEmpty(device.getPicture())) {

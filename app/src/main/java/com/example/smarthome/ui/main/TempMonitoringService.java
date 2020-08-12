@@ -11,15 +11,15 @@ import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.IBinder;
-import android.os.VibrationEffect;
-import android.os.Vibrator;
 import android.util.Log;
 import android.widget.RemoteViews;
 
 import androidx.annotation.IdRes;
+import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 import androidx.lifecycle.LifecycleService;
+import androidx.lifecycle.MutableLiveData;
 
 import com.example.smarthome.MainActivity;
 import com.example.smarthome.R;
@@ -29,21 +29,29 @@ import com.example.smarthome.utils.FireBaseCallBack;
 import com.example.smarthome.warning.NotificationIntentService;
 import com.example.smarthome.warning.WarningService;
 import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.GenericTypeIndicator;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import io.reactivex.Observable;
+
 public class TempMonitoringService extends LifecycleService implements Serializable {
     public static final String EXTRA_BUTTON_CLICKED = "EXTRA_BUTTON_CLICKED";
-    public static boolean isRunning = false;
+    public static MutableLiveData<Boolean> isRunning = new MutableLiveData<>(false);
     private Timer timer;
     public int counter = 0;
-    public static Vibrator v;
     public static MediaPlayer mediaPlayer;
     public static Intent warningService;
 
@@ -51,7 +59,7 @@ public class TempMonitoringService extends LifecycleService implements Serializa
     }
 
     @Override
-    public IBinder onBind(Intent intent) {
+    public IBinder onBind(@NonNull Intent intent) {
         super.onBind(intent);
         return null;
     }
@@ -84,36 +92,40 @@ public class TempMonitoringService extends LifecycleService implements Serializa
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+    public int onStartCommand(@NonNull Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
 
-        isRunning = true;
+        isRunning.setValue(true);
 
         initMedia();
 
         if (!CommonActivity.isNullOrEmpty(intent)
                 && !CommonActivity.isNullOrEmpty(intent.getExtras())
                 && !CommonActivity.isNullOrEmpty(intent.getExtras().getString("idDevice"))) {
-            String idDevice = Objects.requireNonNull(intent.getExtras()).getString("idDevice");
+            String idDevice = "";
+            idDevice = Objects.requireNonNull(intent.getExtras()).getString("idDevice");
             Log.v("TempMonitoringService", "onStartCommand");
             startTimer();
-            MainViewModel viewModel = new MainViewModel();
-            if (!CommonActivity.isNullOrEmpty(idDevice)) {
-                viewModel.getAllDevices().observe(Objects.requireNonNull(this), dataSnapshot -> {
-                    getData(dataSnapshot, devices -> {
-                        if (devices != null) {
-                            for (int i = 0; i < devices.size(); i++) {
-                                Device device = devices.get(i);
-                                if (idDevice.contains(device.getId())) {
-                                    if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
-                                        createNotification(device, i);
-                                    }
-                                }
-                            }
-                        }
-                    });
-                });
-            }
+//            MainViewModel viewModel = new MainViewModel();
+//            if (!CommonActivity.isNullOrEmpty(idDevice)) {
+//                viewModel.getAllDevices().observe(Objects.requireNonNull(this), dataSnapshot -> {
+//                    getData(dataSnapshot, devices -> {
+//                        if (devices != null) {
+//                            for (int i = 0; i < devices.size(); i++) {
+//                                Device device = devices.get(i);
+//                                if (idDevice.contains(device.getId())) {
+//                                    if (CommonActivity.isNullOrEmpty(device.getNO()) || CommonActivity.isNullOrEmpty(device.getNG()))
+//                                        return;
+//                                    if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
+//                                        createNotification(device, i);
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    });
+//                });
+//            }
+            observeDevice(idDevice);
         }
         return START_STICKY;
     }
@@ -125,11 +137,8 @@ public class TempMonitoringService extends LifecycleService implements Serializa
             stopForeground(1);
             stopForeground(9);
         }
-        if (v != null && v.hasVibrator()) {
-            v.cancel();
-        }
 
-        isRunning = false;
+        isRunning.setValue(false);
 
         stopService(warningService);
 
@@ -156,11 +165,13 @@ public class TempMonitoringService extends LifecycleService implements Serializa
     private void createNotification(Device device, int idNoti) {
         RemoteViews notificationLayout =
                 new RemoteViews(getPackageName(), R.layout.notification_monitoring);
+        String displayName = (device.getName() != null) ? device.getName() : device.getId();
         notificationLayout.setTextViewText(R.id.message, device.getNO()
                 + " độ trên thiết bị "
-                + device.getName());
+                + displayName);
 
         Intent stopWarning = new Intent(this, NotificationIntentService.class);
+        stopWarning.putExtra("idNoti", idNoti);
         stopWarning.setAction("stopWarning");
 
         notificationLayout.setOnClickPendingIntent(R.id.removeWarning,
@@ -169,6 +180,10 @@ public class TempMonitoringService extends LifecycleService implements Serializa
 
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(getApplicationContext(), "notify_001");
+        //clear just on clicked
+        mBuilder.setOngoing(true);
+        mBuilder.setAutoCancel(true);
+        mBuilder.setOnlyAlertOnce(true);
         Intent ii = new Intent(getApplicationContext(), MainActivity.class);
         ii.putExtra("menuFragment", "DetailDeviceFragment");
         ii.putExtra("idDevice", device.getId());
@@ -195,7 +210,6 @@ public class TempMonitoringService extends LifecycleService implements Serializa
             mNotificationManager.notify(idNoti, mBuilder.build());
         }
         startMedia();
-        vibrate();
     }
 
     private void initMedia() {
@@ -206,25 +220,11 @@ public class TempMonitoringService extends LifecycleService implements Serializa
     }
 
     private void startMedia() {
-        if (!WarningService.isRunning) {
-            startService(warningService);
-        }
-//        try {
-//            if (mediaPlayer == null) {
-//                initMedia();
-//                if (!mediaPlayer.isPlaying()) {
-//                    mediaPlayer.start();
-//                    Log.d("mediaPlayer", "started");
-//                }
-//            } else {
-//                if (!mediaPlayer.isPlaying()) {
-//                    mediaPlayer.start();
-//                    Log.d("mediaPlayer", "started");
-//                }
-//            }
-//        } catch (IllegalStateException e) {
-//            e.printStackTrace();
-//        }
+        WarningService.isRunning.observe(this, aBoolean -> {
+            if (!aBoolean) {
+                startService(warningService);
+            }
+        });
     }
 
     public static void stopMedia() {
@@ -239,19 +239,6 @@ public class TempMonitoringService extends LifecycleService implements Serializa
             }
         } catch (IllegalStateException | IOException e) {
             e.printStackTrace();
-        }
-    }
-
-    private void vibrate() {
-        v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        if (!CommonActivity.isNullOrEmpty(v)) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                v.vibrate(VibrationEffect.createOneShot(500,
-                        VibrationEffect.DEFAULT_AMPLITUDE));
-            } else {
-                //deprecated in API 26
-                v.vibrate(3000);
-            }
         }
     }
 
@@ -288,4 +275,128 @@ public class TempMonitoringService extends LifecycleService implements Serializa
         intent.putExtra(EXTRA_BUTTON_CLICKED, id);
         return PendingIntent.getBroadcast(this, id, intent, 0);
     }
+
+    FirebaseDatabase database = FirebaseDatabase.getInstance();
+    DatabaseReference deviceRef = database.getReference("devices");
+
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    @SuppressLint("CheckResult")
+    private void observeDevice(String idDevice) {
+        getData().subscribe(devices -> {
+            deviceRef.removeEventListener(deviceEventListener);
+            observer(devices, idDevice);
+        });
+//        getFBData(item -> {
+//            GenericTypeIndicator<ArrayList<Device>> t = new GenericTypeIndicator<ArrayList<Device>>() {
+//            };
+//            ArrayList<Device> devices = item.getValue(t);
+//            observer(devices, idDevice);
+//        });
+    }
+
+    @SuppressLint("CheckResult")
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void observer(ArrayList<Device> devices, String idDevice) {
+        HashSet<String> idSet = new HashSet<>(Arrays.asList(idDevice.split(",")));
+        if (devices != null) {
+            for (Device device : devices) {
+                if (idSet.contains(device.getId())) {
+                    followChild(device.getIndex()).subscribe(device1 -> {
+                        if (CommonActivity.isNullOrEmpty(device1.getNO())
+                                || CommonActivity.isNullOrEmpty(device1.getNG()))
+                            return;
+                        try {
+                            if (Double.parseDouble(device1.getNO()) > Double.parseDouble(device1.getNG())) {
+                                createNotification(device1, device.getIndex());
+                            }
+                        } catch (NumberFormatException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                }
+            }
+        }
+//        if (devices != null) {
+//            for (Device device : devices) {
+//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                    if (idDevice.contains(device.getId())) {
+//                        int index = devices.indexOf(device);
+//                        deviceRef.child(String.valueOf(index))
+//                                .addValueEventListener(new ValueEventListener() {
+//                                    @Override
+//                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//                                        Device device1 = dataSnapshot.getValue(Device.class);
+//                                        if (device1 == null) return;
+//                                        if (CommonActivity.isNullOrEmpty(device1.getNO()) || CommonActivity.isNullOrEmpty(device1.getNG()))
+//                                            return;
+//                                        if (Double.parseDouble(device1.getNO()) > Double.parseDouble(device1.getNG())) {
+//                                            createNotification(device1, index);
+//                                        }
+//                                    }
+//
+//                                    @Override
+//                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+//
+//                                    }
+//                                });
+//                    }
+//                }
+//            }
+//        }
+    }
+
+    private Observable<Device> followChild(int index) {
+        return Observable.create(emitter -> {
+            deviceRef.child(String.valueOf(index))
+                    .addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            Device device1 = dataSnapshot.getValue(Device.class);
+                            if (device1 == null) return;
+                            emitter.onNext(device1);
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+        });
+    }
+
+    private void getFBData(FireBaseCallBack<DataSnapshot> fireBaseCallBack) {
+        deviceRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                fireBaseCallBack.afterDataChanged(dataSnapshot);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    private Observable<ArrayList<Device>> getData() {
+        return Observable.create(emitter -> {
+            deviceEventListener = new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    GenericTypeIndicator<ArrayList<Device>> t = new GenericTypeIndicator<ArrayList<Device>>() {
+                    };
+                    ArrayList<Device> devices = dataSnapshot.getValue(t);
+                    emitter.onNext(devices);
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            };
+            deviceRef.addValueEventListener(deviceEventListener);
+        });
+    }
+
+    private ValueEventListener deviceEventListener;
 }
