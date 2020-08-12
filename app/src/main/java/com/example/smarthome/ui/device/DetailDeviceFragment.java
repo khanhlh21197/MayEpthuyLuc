@@ -2,10 +2,12 @@ package com.example.smarthome.ui.device;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -13,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
@@ -84,6 +87,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     private SharedPreferences prefs;
     private SharedPreferences.Editor editor;
     LinearLayoutManager linearLayoutManager;
+    private Dialog progressDialog;
 
     public static DetailDeviceFragment newInstance(Device device,
                                                    String idDevice) {
@@ -210,12 +214,14 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
         mDb = AppDatabase.getDatabase(getContext());
         getDB();
         initSpinner();
+        initProgress();
         warningService = new Intent(getActivity(), WarningService.class);
         mBinding.btnWarning.setAnimation(createFlashingAnimation());
         mBinding.btnThreshold.setOnClickListener(this);
         mBinding.btnOffset.setOnClickListener(this);
         mBinding.btnLoopingTime.setOnClickListener(this);
         mBinding.deleteHistory.setOnClickListener(this);
+        mBinding.reset.setOnClickListener(this);
 
         viewModel = ViewModelProviders
                 .of(Objects.requireNonNull(getActivity()))
@@ -239,6 +245,22 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
 //                }
 //            }
 //        });
+    }
+
+    private void initProgress() {
+        progressDialog = new Dialog(requireActivity());
+
+        Window window = progressDialog.getWindow();
+        if (window != null) {
+            window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            window.requestFeature(Window.FEATURE_NO_TITLE);
+        }
+        progressDialog.
+                setContentView(R.layout.progress_dialog);
+        progressDialog.
+                setCancelable(true);
+        progressDialog.
+                setCanceledOnTouchOutside(false);
     }
 
     private void initSpinner() {
@@ -473,6 +495,18 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
+            case R.id.reset:
+                progressDialog.show();
+                viewModel.reset(device.getIndex(), "1").subscribe(s -> {
+                    if (s.equals("Success")) {
+                        progressDialog.dismiss();
+                        Toast.makeText(getActivity(), "Reset thành công!", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(getActivity(), "Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
+                    }
+                });
+                progressDialog.dismiss();
+                break;
             case R.id.deleteHistory:
                 Objects.requireNonNull(CommonActivity.createDialog(getActivity(),
                         R.string.delete_history,

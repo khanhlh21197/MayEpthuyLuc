@@ -105,6 +105,13 @@ public class DetailDeviceViewModel extends ViewModel {
         });
     }
 
+    io.reactivex.Observable<String> reset(int indexOfDevice, String rST) {
+        return Observable.create(emitter -> {
+            deviceRef.child(String.valueOf(indexOfDevice)).child("RST").setValue(rST)
+                    .addOnSuccessListener(aVoid -> emitter.onNext("Success"));
+        });
+    }
+
     io.reactivex.Observable<String> setOffset(int indexOfDevice, String offSet) {
         return Observable.create(emitter -> {
             deviceRef.child(String.valueOf(indexOfDevice)).child("NDU").setValue(offSet)

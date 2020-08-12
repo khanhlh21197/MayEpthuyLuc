@@ -48,6 +48,16 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintTop_toTopOf="@id/txtDeviceName" />
 
+            <ImageView
+                android:id="@+id/reset"
+                android:layout_width="@dimen/_24sdp"
+                android:layout_height="@dimen/_24sdp"
+                android:layout_marginStart="@dimen/_8sdp"
+                android:src="@drawable/ic_baseline_refresh_24"
+                app:layout_constraintBottom_toBottomOf="@id/txtDeviceName"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="@id/txtDeviceName" />
+
             <LinearLayout
                 android:id="@+id/lnTime"
                 android:layout_width="match_parent"
