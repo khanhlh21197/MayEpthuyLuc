@@ -35,6 +35,7 @@ import com.example.smarthome.dao.AppDatabase;
 import com.example.smarthome.databinding.MainFragmentBinding;
 import com.example.smarthome.ui.device.DetailDeviceFragment;
 import com.example.smarthome.ui.device.DetailDeviceViewModel;
+import com.example.smarthome.ui.device.LightConfigPopup;
 import com.example.smarthome.ui.device.model.Device;
 import com.example.smarthome.ui.login.LoginViewModel;
 import com.example.smarthome.utils.FireBaseCallBack;
@@ -349,6 +350,14 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
     @Override
     public void onItemLongClick(Device item) {
         deleteDevice(item);
+//        showPopup();
+    }
+
+    private void showPopup() {
+        LightConfigPopup lightConfigPopup = new LightConfigPopup();
+        if (getFragmentManager() != null) {
+            lightConfigPopup.show(getFragmentManager(), "LightConfigPopup");
+        }
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
