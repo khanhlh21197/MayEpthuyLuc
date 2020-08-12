@@ -9,6 +9,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -93,6 +95,13 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
         checkService();
         onFabClicked();
         return mainFragmentBinding.getRoot();
+    }
+
+    @Override
+    public void onPrepareOptionsMenu(@NonNull Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        MenuItem item = menu.findItem(R.id.reset);
+        item.setVisible(false);
     }
 
     private void checkService() {

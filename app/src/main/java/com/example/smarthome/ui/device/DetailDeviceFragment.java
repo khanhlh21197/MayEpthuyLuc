@@ -88,6 +88,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     private SharedPreferences.Editor editor;
     LinearLayoutManager linearLayoutManager;
     private Dialog progressDialog;
+    private boolean update;
 
     public static DetailDeviceFragment newInstance(Device device,
                                                    String idDevice) {
@@ -228,6 +229,10 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
                 .get(DetailDeviceViewModel.class);
 
         viewModel.observerDevice(device.getIndex()).subscribe(device -> {
+            if (update) {
+                mBinding.setDetailDevice(device);
+                update = false;
+            }
             startHandler(device.getNCL(), device);
         });
 
@@ -420,6 +425,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     @Override
     public void onResume() {
         super.onResume();
+        update = true;
     }
 
     @Override
@@ -496,16 +502,24 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.reset:
-                progressDialog.show();
-                viewModel.reset(device.getIndex(), "1").subscribe(s -> {
-                    if (s.equals("Success")) {
-                        progressDialog.dismiss();
-                        Toast.makeText(getActivity(), "Reset thành công!", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(getActivity(), "Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
-                    }
-                });
-                progressDialog.dismiss();
+                CommonActivity.createDialog(requireActivity(),
+                        R.string.reset_device,
+                        R.string.app_name,
+                        R.string.cancel,
+                        R.string.ok,
+                        null,
+                        v1 -> {
+                            progressDialog.show();
+                            viewModel.reset(device.getIndex(), "1").subscribe(s -> {
+                                if (s.equals("Success")) {
+                                    progressDialog.dismiss();
+                                    Toast.makeText(getActivity(), "Reset thành công!", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    Toast.makeText(getActivity(), "Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                            progressDialog.dismiss();
+                        }).show();
                 break;
             case R.id.deleteHistory:
                 Objects.requireNonNull(CommonActivity.createDialog(getActivity(),

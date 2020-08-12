@@ -58,6 +58,7 @@
     <string name="looping_time">Cài đặt thời gian cập nhật !</string>
     <string name="not_enough">Vui lòng nhập đủ thông tin !</string>
     <string name="delete_history">Bạn có muốn xóa lịch sử ?</string>
+    <string name="reset_device">Bạn có muốn reset thiết bị ?</string>
 
     <string-array name="history_display">
         <item>Biểu đồ</item>
