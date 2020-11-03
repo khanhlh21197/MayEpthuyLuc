@@ -2,6 +2,7 @@ package com.example.smarthome.ui.device.model;
 
 import android.annotation.SuppressLint;
 import android.os.Build;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -202,7 +203,19 @@ public class Device implements Serializable {
     }
 
     public String getNG() {
-        return nG;
+        String nGDisplay = "";
+        if ("HHA000002".equals(id)) {
+            if (nG != null) {
+                try {
+                    nGDisplay = String.valueOf((Integer.parseInt(nG) - 2730) / 10);
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else {
+            nGDisplay = nG;
+        }
+        return nGDisplay;
     }
 
     public void setNG(String nG) {
@@ -219,9 +232,18 @@ public class Device implements Serializable {
                     e.printStackTrace();
                 }
             }
+        } else if ("HHA000002".equals(id)) {
+            if (nO != null) {
+                try {
+                    tempDisplay = String.valueOf((Double.parseDouble(nO) - 2730) / 10);
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
+            }
         } else {
             tempDisplay = nO;
         }
+        Log.d(id, "NO: " + tempDisplay);
         return tempDisplay;
     }
 
@@ -231,6 +253,14 @@ public class Device implements Serializable {
             if (nO != null) {
                 try {
                     tempDisplay = String.valueOf(Double.parseDouble(nO) - 3);
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
+            }
+        } else if ("HHA000002".equals(id)) {
+            if (nO != null) {
+                try {
+                    tempDisplay = String.valueOf((Double.parseDouble(nO) - 2730) / 10);
                 } catch (NumberFormatException e) {
                     e.printStackTrace();
                 }

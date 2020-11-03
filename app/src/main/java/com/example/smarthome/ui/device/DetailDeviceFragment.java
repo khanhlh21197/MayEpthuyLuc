@@ -630,6 +630,14 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
                 case THRESHOLD:
                     String ng = editText.getText().toString().trim();
                     if (!CommonActivity.isNullOrEmpty(ng)) {
+                        if ("HHA000002".equals(device.getId())) {
+                            try {
+                                int ngDouble = Integer.parseInt(ng) * 10 + 2730;
+                                ng = String.valueOf(ngDouble);
+                            } catch (NumberFormatException e) {
+                                e.printStackTrace();
+                            }
+                        }
                         viewModel.setNG(device.getIndex(), ng).subscribe(s -> {
                             if (s.equals("Success")) {
                                 editText.setText("");

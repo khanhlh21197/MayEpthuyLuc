@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="item_device"
+            type="com.example.smarthome.ui.device.model.Device" />
+    </data>
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        android:animateLayoutChanges="true"
+        android:background="@drawable/bg_textview"
+        android:elevation="8dp"
+        android:padding="4dp"
+        tools:ignore="UnusedAttribute">
+
+    </LinearLayout>
+
+</layout>
