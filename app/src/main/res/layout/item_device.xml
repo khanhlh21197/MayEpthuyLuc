@@ -12,8 +12,8 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="180dp"
-        android:layout_height="180dp"
-        android:layout_margin="8dp"
+        android:layout_height="@dimen/_90sdp"
+        android:layout_margin="4dp"
         android:animateLayoutChanges="true"
         android:background="@drawable/bg_textview"
         android:elevation="8dp"
@@ -33,11 +33,13 @@
                 android:id="@+id/txtDeviceName"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="8"
+                android:layout_weight="9"
+                android:ellipsize="end"
                 android:gravity="center"
                 android:maxLines="1"
                 android:text="@{item_device.toString()}"
                 android:textSize="@dimen/_14ssp"
+                android:textStyle="bold"
                 tools:text="Tên thiết bị" />
 
             <ImageView
@@ -45,15 +47,15 @@
                 android:layout_width="@dimen/_18sdp"
                 android:layout_height="@dimen/_18sdp"
                 android:layout_marginStart="4dp"
-                android:layout_weight="2"
+                android:layout_weight="1"
                 android:src="@mipmap/ic_edit" />
 
         </LinearLayout>
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/imgDevice"
-            android:layout_width="@dimen/_64sdp"
-            android:layout_height="@dimen/_64sdp"
+            android:layout_width="@dimen/_48sdp"
+            android:layout_height="@dimen/_48sdp"
             android:layout_marginTop="@dimen/_8sdp"
             android:scaleType="fitXY"
             android:src="@drawable/ic_battery"
@@ -65,23 +67,23 @@
 
         <RelativeLayout
             android:id="@+id/rlOnOff"
-            android:layout_width="@dimen/_64sdp"
-            android:layout_height="@dimen/_64sdp"
+            android:layout_width="@dimen/_48sdp"
+            android:layout_height="@dimen/_48sdp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/llDeviceName">
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/on"
-                android:layout_width="@dimen/_64sdp"
-                android:layout_height="@dimen/_64sdp"
+                android:layout_width="@dimen/_48sdp"
+                android:layout_height="@dimen/_48sdp"
                 android:layout_marginTop="@dimen/_8sdp"
                 android:src="@drawable/ic_power_off" />
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/off"
-                android:layout_width="@dimen/_64sdp"
-                android:layout_height="@dimen/_64sdp"
+                android:layout_width="@dimen/_48sdp"
+                android:layout_height="@dimen/_48sdp"
                 android:layout_marginTop="@dimen/_8sdp"
                 android:src="@drawable/ic_power_on"
                 android:visibility="gone" />
@@ -100,8 +102,8 @@
 
         <androidx.appcompat.widget.AppCompatImageView
             android:id="@+id/imgWarning"
-            android:layout_width="@dimen/_64sdp"
-            android:layout_height="@dimen/_64sdp"
+            android:layout_width="@dimen/_48sdp"
+            android:layout_height="@dimen/_48sdp"
             android:layout_marginTop="@dimen/_8sdp"
             android:src="@drawable/ic_warning_red"
             android:visibility="gone"
@@ -146,12 +148,14 @@
                 android:id="@+id/onOffSwitch"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 app:sb_checked="true" />
 
             <RelativeLayout
                 android:id="@+id/rlActive"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:visibility="gone">
 
                 <TextView
                     android:id="@+id/txtOn"
