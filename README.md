@@ -1,2 +1,2 @@
 # SmartHome1
-Fire Warning Project using Firebase + Java 
+May ep thuy luc MrQuang
