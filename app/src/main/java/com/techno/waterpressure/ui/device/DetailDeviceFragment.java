@@ -34,13 +34,6 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProviders;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
-import com.techno.waterpressure.R;
-import com.techno.waterpressure.common.CommonActivity;
-import com.techno.waterpressure.dao.AppDatabase;
-import com.techno.waterpressure.databinding.DetailDeviceFragmentBinding;
-import com.techno.waterpressure.serializer.ObjectSerializer;
-import com.techno.waterpressure.ui.device.model.Device;
-import com.techno.waterpressure.warning.WarningService;
 import com.github.mikephil.charting.charts.CombinedChart;
 import com.github.mikephil.charting.components.AxisBase;
 import com.github.mikephil.charting.components.XAxis;
@@ -54,6 +47,13 @@ import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
+import com.techno.waterpressure.R;
+import com.techno.waterpressure.common.CommonActivity;
+import com.techno.waterpressure.dao.AppDatabase;
+import com.techno.waterpressure.databinding.DetailDeviceFragmentBinding;
+import com.techno.waterpressure.serializer.ObjectSerializer;
+import com.techno.waterpressure.ui.device.model.Device;
+import com.techno.waterpressure.warning.WarningService;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -61,9 +61,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
-
-import io.reactivex.Observable;
-import io.reactivex.Single;
 
 public class DetailDeviceFragment extends Fragment implements View.OnClickListener, OnChartValueSelectedListener {
     private static final String SHARED_PREFS_HISTORY = "SHARED_PREFS_HISTORY";
@@ -77,8 +74,6 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
 
     private DetailDeviceFragmentBinding mBinding;
     private DetailDeviceViewModel viewModel;
-    private Device device;
-    private String idDevice = "";
     private boolean flashingText = false;
     private HistoryAdapter historyAdapter;
     private int highTemp = 0;
@@ -89,23 +84,16 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     LinearLayoutManager linearLayoutManager;
     private Dialog progressDialog;
     private boolean update;
+    private Device device;
 
-    public static DetailDeviceFragment newInstance(Device device,
-                                                   String idDevice) {
-
-        Bundle args = new Bundle();
-        args.putSerializable("Device", device);
-        args.putString("idDevice", idDevice);
-        DetailDeviceFragment fragment = new DetailDeviceFragment();
-        fragment.setArguments(args);
-        return fragment;
+    public static DetailDeviceFragment newInstance() {
+        return new DetailDeviceFragment();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        getBundleData();
         mBinding =
                 DataBindingUtil.inflate(inflater,
                         R.layout.detail_device_fragment,
@@ -200,15 +188,6 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
         mBinding.listHistory.setAdapter(historyAdapter);
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
-    private void getBundleData() {
-        Bundle bundle = getArguments();
-        if (bundle != null) {
-            device = (Device) bundle.getSerializable("Device");
-            idDevice = bundle.getString("idDevice");
-        }
-    }
-
     @SuppressLint("CheckResult")
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void unit() {
@@ -228,27 +207,17 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
                 .of(Objects.requireNonNull(getActivity()))
                 .get(DetailDeviceViewModel.class);
 
-        viewModel.observerDevice(device.getIndex()).subscribe(device -> {
-            if (update) {
-                mBinding.setDetailDevice(device);
-                update = false;
-            }
-            startHandler(device.getNCL(), device);
+        viewModel.monitoringDevice().subscribe(device1 -> {
+            mBinding.setDetailDevice(device1);
+            startHandler("1000L", device1);
         });
 
-//        viewModel.getAllDevice().subscribe(devices -> {
-//            if (!CommonActivity.isNullOrEmpty(devices)) {
-//                for (Device device : devices) {
-//                    if (device.getId().equals(DetailDeviceFragment.this.device.getId())) {
-//                        indexOfDevice = devices.indexOf(device);
-////                        liveData.setValue(device);
-//                        if (!CommonActivity.isNullOrEmpty(device.getNCL())) {
-//                            startHandler(device.getNCL(), device);
-//                        }
-//                        break;
-//                    }
-//                }
+//        viewModel.observerDevice(device.getIndex()).subscribe(device -> {
+//            if (update) {
+//                mBinding.setDetailDevice(device);
+//                update = false;
 //            }
+//            startHandler(device.getNCL(), device);
 //        });
     }
 
@@ -300,16 +269,16 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     @SuppressLint("CheckResult")
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void saveDevice(Device device) {
-        Single.create(emitter -> {
-            Device d = new Device(device.getId(), device.getNO(), device.getTime());
-            AppDatabase.getDatabase(getActivity()).deviceDAO().insertDevice(d);
-        }).subscribe((o, throwable) -> {
-            if (throwable == null) {
-                Log.d("saveDevice", o.toString());
-            } else {
-                Log.d("Error", throwable.toString());
-            }
-        });
+//        Single.create(emitter -> {
+//            Device d = new Device(device.getId(), device.getNO(), device.getTime());
+//            AppDatabase.getDatabase(getActivity()).deviceDAO().insertDevice(d);
+//        }).subscribe((o, throwable) -> {
+//            if (throwable == null) {
+//                Log.d("saveDevice", o.toString());
+//            } else {
+//                Log.d("Error", throwable.toString());
+//            }
+//        });
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -331,7 +300,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
             timeLabel.add(currentTime);
             float temp = 0;
             try {
-                temp = Float.parseFloat(device.getNO());
+                temp = Float.parseFloat(device.getNO1());
                 temperature.add(temp);
             } catch (NumberFormatException e) {
                 e.printStackTrace();
@@ -361,14 +330,14 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     @SuppressLint("CheckResult")
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void compareTemp(Device device1) {
-        if (CommonActivity.isNullOrEmpty(device1.getNO()) || CommonActivity.isNullOrEmpty(device1.getNG()))
+        if (CommonActivity.isNullOrEmpty(device1.getNO1()) || CommonActivity.isNullOrEmpty(device1.getNG1()))
             return;
         try {
             history.add(0, device1);
             historyAdapter.notifyItemInserted(0);
             mBinding.listHistory.smoothScrollToPosition(0);
-            if (Double.parseDouble(device1.getNO()) > Double.parseDouble(device1.getNG())) {
-                startWarning(device1.getNG());
+            if (Double.parseDouble(device1.getNO1()) > Double.parseDouble(device1.getNG1())) {
+                startWarning(device1.getNG1());
                 mBinding.btnWarning.setOnClickListener(v -> {
                     cancelWarning();
                 });
@@ -452,8 +421,8 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
         @SuppressLint("InflateParams") View alertLayout = inflater.inflate(R.layout.dialog_edit_device_name, null);
         final EditText edtDeviceName = alertLayout.findViewById(R.id.edtDeviceName);
         final TextView txtWarning = alertLayout.findViewById(R.id.txtWarning);
-        if (!CommonActivity.isNullOrEmpty(device.getName())) {
-            edtDeviceName.setText(device.getName());
+        if (!CommonActivity.isNullOrEmpty(device.getName1())) {
+            edtDeviceName.setText(device.getName1());
         } else {
             edtDeviceName.setText(device.getId());
         }
@@ -466,8 +435,8 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
 
         alert.setPositiveButton("Đồng ý", (dialog, which) -> {
             if (!CommonActivity.isNullOrEmpty(edtDeviceName.getText().toString())) {
-                device.setName(edtDeviceName.getText().toString());
-                viewModel.setName(device.getIndex(), device.getName());
+                device.setName1(edtDeviceName.getText().toString());
+                viewModel.setName(device.getName1());
                 txtWarning.setVisibility(View.GONE);
             } else {
                 txtWarning.setVisibility(View.VISIBLE);
@@ -480,20 +449,20 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint("CheckResult")
     private void getDB() {
-        ArrayList<Device> devices = (ArrayList<Device>) mDb.deviceDAO().getAllDevice(idDevice);
-        history = new ArrayList<>(devices);
-        for (Device device : devices) {
-            timeLabel.add(device.getTime());
-            try {
-                temperature.add(Float.parseFloat(device.getNO()));
-            } catch (NumberFormatException e) {
-                e.printStackTrace();
-            }
-        }
-        Observable.just(devices).subscribe(device -> {
-            Log.d("getDB", "getDB: " + devices.size());
-        });
-        updateChart();
+//        ArrayList<Device> devices = (ArrayList<Device>) mDb.deviceDAO().getAllDevice(idDevice);
+//        history = new ArrayList<>(devices);
+//        for (Device device : devices) {
+//            timeLabel.add(device.getTime());
+//            try {
+//                temperature.add(Float.parseFloat(device.getNO()));
+//            } catch (NumberFormatException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        Observable.just(devices).subscribe(device -> {
+//            Log.d("getDB", "getDB: " + devices.size());
+//        });
+//        updateChart();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -502,39 +471,39 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.reset:
-                CommonActivity.createDialog(requireActivity(),
-                        R.string.reset_device,
-                        R.string.app_name,
-                        R.string.cancel,
-                        R.string.ok,
-                        null,
-                        v1 -> {
-                            progressDialog.show();
-                            viewModel.reset(device.getIndex(), "1").subscribe(s -> {
-                                if (s.equals("Success")) {
-                                    progressDialog.dismiss();
-                                    Toast.makeText(getActivity(), "Reset thành công!", Toast.LENGTH_SHORT).show();
-                                } else {
-                                    Toast.makeText(getActivity(), "Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                            progressDialog.dismiss();
-                        }).show();
+//                CommonActivity.createDialog(requireActivity(),
+//                        R.string.reset_device,
+//                        R.string.app_name,
+//                        R.string.cancel,
+//                        R.string.ok,
+//                        null,
+//                        v1 -> {
+//                            progressDialog.show();
+//                            viewModel.reset(device.getIndex(), "1").subscribe(s -> {
+//                                if (s.equals("Success")) {
+//                                    progressDialog.dismiss();
+//                                    Toast.makeText(getActivity(), "Reset thành công!", Toast.LENGTH_SHORT).show();
+//                                } else {
+//                                    Toast.makeText(getActivity(), "Vui lòng thử lại!", Toast.LENGTH_SHORT).show();
+//                                }
+//                            });
+//                            progressDialog.dismiss();
+//                        }).show();
                 break;
             case R.id.deleteHistory:
-                Objects.requireNonNull(CommonActivity.createDialog(getActivity(),
-                        R.string.delete_history,
-                        R.string.app_name,
-                        R.string.ok,
-                        R.string.cancel,
-                        v1 -> {
-                            AppDatabase.getDatabase(getActivity()).deviceDAO().deleteHistory(idDevice);
-                            clearChart();
-                            history.clear();
-                            historyAdapter.notifyDataSetChanged();
-                            Toast.makeText(getActivity(), "Xóa thành công !", Toast.LENGTH_LONG).show();
-                        },
-                        null)).show();
+//                Objects.requireNonNull(CommonActivity.createDialog(getActivity(),
+//                        R.string.delete_history,
+//                        R.string.app_name,
+//                        R.string.ok,
+//                        R.string.cancel,
+//                        v1 -> {
+//                            AppDatabase.getDatabase(getActivity()).deviceDAO().deleteHistory(idDevice);
+//                            clearChart();
+//                            history.clear();
+//                            historyAdapter.notifyDataSetChanged();
+//                            Toast.makeText(getActivity(), "Xóa thành công !", Toast.LENGTH_LONG).show();
+//                        },
+//                        null)).show();
                 break;
             case R.id.btnThreshold:
                 configureThreshold();
@@ -617,7 +586,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
                 case OFFSET:
                     String offSet = editText.getText().toString().trim();
                     if (!CommonActivity.isNullOrEmpty(offSet)) {
-                        viewModel.setOffset(device.getIndex(), offSet).subscribe(s -> {
+                        viewModel.setOffset(offSet).subscribe(s -> {
                             if (s.equals("Success")) {
                                 editText.setText("");
                                 Toast.makeText(getActivity(), "Cài đặt offset thành công!", Toast.LENGTH_SHORT).show();
@@ -638,7 +607,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
                                 e.printStackTrace();
                             }
                         }
-                        viewModel.setNG(device.getIndex(), ng).subscribe(s -> {
+                        viewModel.setNG(ng).subscribe(s -> {
                             if (s.equals("Success")) {
                                 editText.setText("");
                                 Toast.makeText(getActivity(), "Cài đặt ngưỡng thành công!", Toast.LENGTH_SHORT).show();
@@ -653,7 +622,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
                 case LOOPINGTIME:
                     String loopingTime = editText.getText().toString().trim();
                     if (!CommonActivity.isNullOrEmpty(loopingTime)) {
-                        viewModel.setLoopingTime(device.getIndex(), loopingTime).subscribe(s -> {
+                        viewModel.setLoopingTime(loopingTime).subscribe(s -> {
                             if (s.equals("Success")) {
                                 editText.setText("");
                                 Toast.makeText(getActivity(), "Cài đặt thời gian thành công!", Toast.LENGTH_SHORT).show();

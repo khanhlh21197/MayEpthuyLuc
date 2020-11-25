@@ -344,9 +344,9 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onItemClick(Device item) {
-        ReplaceFragment.replaceFragment(getActivity(),
-                DetailDeviceFragment.newInstance(item, item.getId()),
-                true);
+//        ReplaceFragment.replaceFragment(getActivity(),
+//                DetailDeviceFragment.newInstance(item, item.getId()),
+//                true);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -415,11 +415,11 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
         @SuppressLint("InflateParams") View alertLayout = inflater.inflate(R.layout.dialog_edit_device_name, null);
         final EditText edtDeviceName = alertLayout.findViewById(R.id.edtDeviceName);
         final TextView txtWarning = alertLayout.findViewById(R.id.txtWarning);
-        if (!CommonActivity.isNullOrEmpty(device.getName())) {
-            edtDeviceName.setText(device.getName());
-        } else {
-            edtDeviceName.setText(device.getId());
-        }
+//        if (!CommonActivity.isNullOrEmpty(device.getName())) {
+//            edtDeviceName.setText(device.getName());
+//        } else {
+//            edtDeviceName.setText(device.getId());
+//        }
 
         AlertDialog.Builder alert = new AlertDialog.Builder(Objects.requireNonNull(getActivity()));
         alert.setTitle(getString(R.string.change_device_name));
@@ -429,8 +429,8 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
 
         alert.setPositiveButton(getString(R.string.ok), (dialog, which) -> {
             if (!CommonActivity.isNullOrEmpty(edtDeviceName.getText().toString())) {
-                device.setName(edtDeviceName.getText().toString());
-                viewModel.setName(Integer.parseInt(device.getPosition()), device.getName());
+//                device.setName(edtDeviceName.getText().toString());
+//                viewModel.setName(Integer.parseInt(device.getPosition()), device.getName());
                 txtWarning.setVisibility(View.GONE);
             } else {
                 txtWarning.setVisibility(View.VISIBLE);
@@ -465,8 +465,8 @@ public class MainFragment extends Fragment implements BaseBindingAdapter.OnItemC
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void saveDevice(Device device) {
         Single.create(emitter -> {
-            Device d = new Device(device.getId(), device.getNO(), device.getTime());
-            AppDatabase.getDatabase(getActivity()).deviceDAO().insertDevice(d);
+//            Device d = new Device(device.getId(), device.getNO(), device.getTime());
+//            AppDatabase.getDatabase(getActivity()).deviceDAO().insertDevice(d);
         }).subscribe((o, throwable) -> {
             if (throwable == null) {
                 Log.d("saveDevice", o.toString());

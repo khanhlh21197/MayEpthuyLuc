@@ -130,10 +130,10 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
                         }, 1000);
                     }
                 });
-                if (!CommonActivity.isNullOrEmpty(device.getNO())
-                        && !CommonActivity.isNullOrEmpty(device.getNG())) {
+                if (!CommonActivity.isNullOrEmpty(device.getNO1())
+                        && !CommonActivity.isNullOrEmpty(device.getNG1())) {
                     try {
-                        if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
+                        if (Double.parseDouble(device.getNO1()) > Double.parseDouble(device.getNG1())) {
                             holder.itemView.findViewById(R.id.imgWarning).setVisibility(View.VISIBLE);
                             holder.itemView.findViewById(R.id.imgWarning)
                                     .setAnimation(DetailDeviceFragment.createFlashingAnimation());
@@ -145,18 +145,6 @@ public class BaseBindingAdapter<T> extends RecyclerView.Adapter<BaseBindingAdapt
                         e.printStackTrace();
                     }
                 }
-                if (!CommonActivity.isNullOrEmpty(device.getPicture())) {
-                    mStorage = FirebaseStorage.getInstance();
-                    StorageReference picture = mStorage.getReferenceFromUrl(device.getPicture());
-                    picture.getDownloadUrl().addOnCompleteListener(task -> {
-//                        Glide.with(mContext)
-//                                .load(getRandomImageUrl(new Random()))
-//                                .into((ImageView) holder.itemView.findViewById(R.id.imgDevice));
-                    });
-                }
-//                Glide.with(mContext)
-//                        .load(getRandomImageUrl(new Random()))
-//                        .into((ImageView) holder.itemView.findViewById(R.id.imgDevice));
             } catch (NumberFormatException e) {
                 e.printStackTrace();
             }

@@ -21,6 +21,12 @@ import androidx.core.app.NotificationCompat;
 import androidx.lifecycle.LifecycleService;
 import androidx.lifecycle.MutableLiveData;
 
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.GenericTypeIndicator;
+import com.google.firebase.database.ValueEventListener;
 import com.techno.waterpressure.MainActivity;
 import com.techno.waterpressure.R;
 import com.techno.waterpressure.common.CommonActivity;
@@ -28,12 +34,6 @@ import com.techno.waterpressure.ui.device.model.Device;
 import com.techno.waterpressure.utils.FireBaseCallBack;
 import com.techno.waterpressure.warning.NotificationIntentService;
 import com.techno.waterpressure.warning.WarningService;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.GenericTypeIndicator;
-import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -164,8 +164,8 @@ public class TempMonitoringService extends LifecycleService implements Serializa
     private void createNotification(Device device, int idNoti) {
         RemoteViews notificationLayout =
                 new RemoteViews(getPackageName(), R.layout.notification_monitoring);
-        String displayName = (device.getName() != null) ? device.getName() : device.getId();
-        notificationLayout.setTextViewText(R.id.message, device.getNO()
+        String displayName = (device.getName1() != null) ? device.getName1() : device.getId();
+        notificationLayout.setTextViewText(R.id.message, device.getNO1()
                 + " độ trên thiết bị "
                 + displayName);
 
@@ -300,13 +300,13 @@ public class TempMonitoringService extends LifecycleService implements Serializa
         if (devices != null) {
             for (Device device : devices) {
                 if (idSet.contains(device.getId())) {
-                    followChild(device.getIndex()).subscribe(device1 -> {
-                        if (CommonActivity.isNullOrEmpty(device1.getNO())
-                                || CommonActivity.isNullOrEmpty(device1.getNG()))
+                    followChild().subscribe(device1 -> {
+                        if (CommonActivity.isNullOrEmpty(device1.getNO1())
+                                || CommonActivity.isNullOrEmpty(device1.getNG1()))
                             return;
                         try {
-                            if (Double.parseDouble(device1.getNO()) > Double.parseDouble(device1.getNG())) {
-                                createNotification(device1, device.getIndex());
+                            if (Double.parseDouble(device1.getNO1()) > Double.parseDouble(device1.getNG1())) {
+                                createNotification(device1, 1);
                             }
                         } catch (NumberFormatException e) {
                             e.printStackTrace();
@@ -344,22 +344,21 @@ public class TempMonitoringService extends LifecycleService implements Serializa
 //        }
     }
 
-    private Observable<Device> followChild(int index) {
+    private Observable<Device> followChild() {
         return Observable.create(emitter -> {
-            deviceRef.child(String.valueOf(index))
-                    .addValueEventListener(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                            Device device1 = dataSnapshot.getValue(Device.class);
-                            if (device1 == null) return;
-                            emitter.onNext(device1);
-                        }
+            deviceRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    Device device1 = dataSnapshot.getValue(Device.class);
+                    if (device1 == null) return;
+                    emitter.onNext(device1);
+                }
 
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError databaseError) {
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
 
-                        }
-                    });
+                }
+            });
         });
     }
 

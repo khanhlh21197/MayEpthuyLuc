@@ -6,16 +6,17 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.techno.waterpressure.ui.device.model.Device;
-import com.techno.waterpressure.utils.FireBaseCallBack;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.ValueEventListener;
+import com.techno.waterpressure.ui.device.model.Device;
+import com.techno.waterpressure.utils.FireBaseCallBack;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 import io.reactivex.Observable;
 
@@ -82,6 +83,22 @@ public class DetailDeviceViewModel extends ViewModel {
         return temp;
     }
 
+    public Observable<Device> monitoringDevice() {
+        return Observable.create(emitter -> {
+            deviceRef.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    emitter.onNext(Objects.requireNonNull(dataSnapshot.getValue(Device.class)));
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    emitter.onError(new Throwable(databaseError.toString()));
+                }
+            });
+        });
+    }
+
     public Observable<Device> observerDevice(int index) {
         return Observable.create(emitter -> {
             deviceRef.child(String.valueOf(index)).addValueEventListener(new ValueEventListener() {
@@ -98,9 +115,9 @@ public class DetailDeviceViewModel extends ViewModel {
         });
     }
 
-    io.reactivex.Observable<String> setNG(int indexOfDevice, String ng) {
+    io.reactivex.Observable<String> setNG(String ng) {
         return Observable.create(emitter -> {
-            deviceRef.child(String.valueOf(indexOfDevice)).child("NG").setValue(ng)
+            deviceRef.child("NG").setValue(ng)
                     .addOnSuccessListener(aVoid -> emitter.onNext("Success"));
         });
     }
@@ -112,22 +129,22 @@ public class DetailDeviceViewModel extends ViewModel {
         });
     }
 
-    io.reactivex.Observable<String> setOffset(int indexOfDevice, String offSet) {
+    io.reactivex.Observable<String> setOffset(String offSet) {
         return Observable.create(emitter -> {
-            deviceRef.child(String.valueOf(indexOfDevice)).child("NDU").setValue(offSet)
+            deviceRef.child("NDU").setValue(offSet)
                     .addOnSuccessListener(aVoid -> emitter.onNext("Success"));
         });
     }
 
-    io.reactivex.Observable<String> setLoopingTime(int indexOfDevice, String looping) {
+    io.reactivex.Observable<String> setLoopingTime(String looping) {
         return Observable.create(emitter -> {
-            deviceRef.child(String.valueOf(indexOfDevice)).child("NCL").setValue(looping)
+            deviceRef.child("NCL").setValue(looping)
                     .addOnSuccessListener(aVoid -> emitter.onNext("Success"));
         });
     }
 
-    public void setName(int indexOfDevice, String name) {
-        deviceRef.child(String.valueOf(indexOfDevice)).child("name").setValue(name);
+    public void setName(String name) {
+        deviceRef.child("name1").setValue(name);
     }
 
     void setTotal(int indexOfDevice, String total) {

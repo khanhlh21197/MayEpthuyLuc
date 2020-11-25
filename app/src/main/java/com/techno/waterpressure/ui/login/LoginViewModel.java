@@ -34,24 +34,24 @@ public class LoginViewModel extends ViewModel {
         this.userID = userID;
     }
 
-    ArrayList<User> getAllUsersLiveData() {
-        showLoading();
-        getData((DataSnapshot item) -> {
-            users.clear();
-            for (DataSnapshot d : item.getChildren()) {
-                User user = d.getValue(User.class);
-                if (user != null) {
-                    Log.d("User: ", user.toString());
-                }
-                if (user != null) {
-                    user.setUid(d.getKey());
-                }
-                users.add(user);
-            }
-            hideLoading();
-        });
-        return users;
-    }
+//    ArrayList<User> getAllUsersLiveData() {
+//        showLoading();
+//        getData((DataSnapshot item) -> {
+//            users.clear();
+//            for (DataSnapshot d : item.getChildren()) {
+//                User user = d.getValue(User.class);
+//                if (user != null) {
+//                    Log.d("User: ", user.toString());
+//                }
+//                if (user != null) {
+//                    user.setUid(d.getKey());
+//                }
+//                users.add(user);
+//            }
+//            hideLoading();
+//        });
+//        return users;
+//    }
 
     void showLoading() {
         loadingVisibility.setValue(View.VISIBLE);

@@ -44,11 +44,11 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Device device = history.get(position);
         holder.tvTime.setText(device.getTime());
-        holder.tvTemperature.setText("Nhiệt độ : " + device.getNO() + " độ C");
+        holder.tvTemperature.setText("Nhiệt độ : " + device.getNO1() + " độ C");
         try {
-            if (CommonActivity.isNullOrEmpty(device.getNG()) || CommonActivity.isNullOrEmpty(device.getNO()))
+            if (CommonActivity.isNullOrEmpty(device.getNG1()) || CommonActivity.isNullOrEmpty(device.getNO1()))
                 return;
-            if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
+            if (Double.parseDouble(device.getNO1()) > Double.parseDouble(device.getNG1())) {
                 holder.tvTemperature.setTextColor(context.getResources().getColor(R.color.red));
                 holder.tvTime.setTextColor(context.getResources().getColor(R.color.red));
             } else {

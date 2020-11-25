@@ -58,7 +58,7 @@ public class SignUpFragment extends Fragment implements Result<User> {
         });
         mBinding.linkLogin.setOnClickListener(v -> {
             ReplaceFragment.replaceFragment(getActivity(),
-                    LoginFragment.newInstance("", "", true);
+                    LoginFragment.newInstance("", ""), true);
         });
         return mBinding.getRoot();
     }

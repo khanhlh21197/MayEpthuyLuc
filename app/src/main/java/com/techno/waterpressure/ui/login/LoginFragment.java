@@ -27,14 +27,6 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.lifecycle.ViewModelProviders;
 
-import com.techno.waterpressure.FirebaseMultiQuery;
-import com.techno.waterpressure.MainActivity;
-import com.techno.waterpressure.R;
-import com.techno.waterpressure.common.CommonActivity;
-import com.techno.waterpressure.common.ReplaceFragment;
-import com.techno.waterpressure.databinding.LoginFragmentBinding;
-import com.techno.waterpressure.ui.main.MainFragment;
-import com.techno.waterpressure.ui.signup.SignUpFragment;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -44,11 +36,16 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
+import com.techno.waterpressure.MainActivity;
+import com.techno.waterpressure.R;
+import com.techno.waterpressure.common.CommonActivity;
+import com.techno.waterpressure.common.ReplaceFragment;
+import com.techno.waterpressure.databinding.LoginFragmentBinding;
+import com.techno.waterpressure.ui.device.DetailDeviceFragment;
+import com.techno.waterpressure.ui.signup.SignUpFragment;
 
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import io.reactivex.Observable;
 
@@ -68,8 +65,6 @@ public class LoginFragment extends Fragment {
     private String email = "";
     private String password = "";
     private int progressStatus = 0;
-    private ArrayList<User> users = new ArrayList<>();
-    private User user = null;
     private Dialog progressDialog;
 
     public static LoginFragment newInstance(String email, String password) {
@@ -124,12 +119,12 @@ public class LoginFragment extends Fragment {
         binding.setLifecycleOwner(this);
         binding.setLoginViewModel(loginViewModel);
 
-        initProgress();
+//        initProgress();
 
-        FirebaseMultiQuery query = new FirebaseMultiQuery(userRef);
-        final Task<Map<DatabaseReference, DataSnapshot>> allLoad = query.start();
-        allLoad.addOnCompleteListener(Objects.requireNonNull(getActivity()), new AllOnCompleteListener());
-        users = loginViewModel.getAllUsersLiveData();
+//        FirebaseMultiQuery query = new FirebaseMultiQuery(userRef);
+//        final Task<Map<DatabaseReference, DataSnapshot>> allLoad = query.start();
+//        allLoad.addOnCompleteListener(Objects.requireNonNull(getActivity()), new AllOnCompleteListener());
+//        users = loginViewModel.getAllUsersLiveData();
 
         binding.btnLogin.setOnClickListener(v -> {
             binding.progressBar.setVisibility(View.VISIBLE);
@@ -146,16 +141,17 @@ public class LoginFragment extends Fragment {
                         inputUser.getPassword()
                 ).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        for (User user : users) {
-                            if (user.getEmail().equals(inputUser.getEmail())) {
-                                loginViewModel.setUserID(user.getUid());
-                                Log.d("isLoginSuccess", user.getUid());
-                                this.user = user;
-                                idDevice = user.getIdDevice();
-                                onLoginSuccess(inputUser);
-                                break;
-                            }
-                        }
+                        onLoginSuccess(inputUser);
+//                        for (User user : users) {
+//                            if (user.getEmail().equals(inputUser.getEmail())) {
+//                                loginViewModel.setUserID(user.getUid());
+//                                Log.d("isLoginSuccess", user.getUid());
+//                                this.user = user;
+//                                idDevice = user.getIdDevice();
+//                                onLoginSuccess(inputUser);
+//                                break;
+//                            }
+//                        }
                     } else {
                         CommonActivity.showConfirmValidate(mActivity, "Sai tên email hoặc mật khẩu!");
                         binding.progressBar.setVisibility(View.GONE);
@@ -233,31 +229,6 @@ public class LoginFragment extends Fragment {
 
     }
 
-    private boolean isLoginSuccess(User inputUser) {
-        AtomicBoolean success = new AtomicBoolean(false);
-        if (!CommonActivity.isNullOrEmpty(users)) {
-            FirebaseAuth.getInstance().signInWithEmailAndPassword(
-                    inputUser.getEmail(),
-                    inputUser.getPassword()
-            ).addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    for (User user : users) {
-                        if (user.getEmail().equals(inputUser.getEmail())) {
-                            loginViewModel.setUserID(user.getUid());
-                            Log.d("isLoginSuccess", user.getUid());
-                            this.user = user;
-                            idDevice = user.getIdDevice();
-                            success.set(true);
-                        }
-                    }
-                }
-            });
-        } else {
-            success.set(false);
-        }
-        return success.get();
-    }
-
     private void initSharedPreferences() {
         sharedPreferences = Objects.requireNonNull(getActivity()).getSharedPreferences(MyPREFERENCES, Context.MODE_PRIVATE);
         String email = sharedPreferences.getString("email", "");
@@ -275,8 +246,8 @@ public class LoginFragment extends Fragment {
     private void onLoginSuccess(User inputUser) {
         Toast.makeText(mActivity, "Đăng nhập thành công với " + inputUser.getEmail(), Toast.LENGTH_SHORT).show();
         if (binding.saveUser.isChecked()) {
-            String email = user.getEmail();
-            String password = user.getPassword();
+//            String email = user.getEmail();
+//            String password = user.getPassword();
             boolean saveUser = binding.saveUser.isChecked();
 
             @SuppressLint("CommitPrefEdits") SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -286,7 +257,7 @@ public class LoginFragment extends Fragment {
             editor.apply();
         }
         ReplaceFragment.replaceFragment(mActivity,
-                MainFragment.newInstance(idDevice),
+                DetailDeviceFragment.newInstance(),
                 true);
     }
 
@@ -317,7 +288,7 @@ public class LoginFragment extends Fragment {
                 @Override
                 public void onComplete(@NonNull Task<Void> task) {
                     ReplaceFragment.replaceFragment(mActivity,
-                            MainFragment.newInstance(idDevice),
+                            DetailDeviceFragment.newInstance(),
                             true);
                 }
             });
