@@ -23,7 +23,6 @@ public class Device implements Serializable {
 
     @SerializedName("id")
     @Expose
-    @NonNull
     String id;
     @SerializedName("user")
     @Expose
@@ -65,12 +64,25 @@ public class Device implements Serializable {
     @ColumnInfo(name = "time")
     String time;
     int temp;
+    int temp2;
     String position;
     boolean active;
+
+    public void setTemp2(int temp2) {
+        this.temp2 = temp2;
+    }
 
     public int getTemp() {
         try {
             return (int) Float.parseFloat(NO1);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    public int getTemp2() {
+        try {
+            return (int) Float.parseFloat(NO2);
         } catch (NumberFormatException e) {
             return 0;
         }

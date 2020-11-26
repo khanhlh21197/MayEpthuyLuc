@@ -108,7 +108,8 @@
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
                     android:layout_marginEnd="@dimen/_32sdp"
-                    android:text="@string/save_user" />
+                    android:text="@string/save_user"
+                    android:visibility="gone" />
 
             </RelativeLayout>
 

@@ -5,6 +5,7 @@ import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.TaskStackBuilder;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -30,6 +31,7 @@ import com.google.firebase.database.ValueEventListener;
 import com.techno.waterpressure.MainActivity;
 import com.techno.waterpressure.R;
 import com.techno.waterpressure.common.CommonActivity;
+import com.techno.waterpressure.dao.AppDatabase;
 import com.techno.waterpressure.ui.device.model.Device;
 import com.techno.waterpressure.utils.FireBaseCallBack;
 import com.techno.waterpressure.warning.NotificationIntentService;
@@ -37,10 +39,9 @@ import com.techno.waterpressure.warning.WarningService;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Objects;
+import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -53,6 +54,7 @@ public class TempMonitoringService extends LifecycleService implements Serializa
     public int counter = 0;
     public static MediaPlayer mediaPlayer;
     public static Intent warningService;
+    private AppDatabase mDb;
 
     public TempMonitoringService() {
     }
@@ -87,6 +89,8 @@ public class TempMonitoringService extends LifecycleService implements Serializa
             startMyOwnForeground();
         else
             startForeground(1, new Notification());
+
+        mDb = AppDatabase.getDatabase(this);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -97,35 +101,9 @@ public class TempMonitoringService extends LifecycleService implements Serializa
         isRunning.setValue(true);
 
         initMedia();
-
-        if (!CommonActivity.isNullOrEmpty(intent)
-                && !CommonActivity.isNullOrEmpty(intent.getExtras())
-                && !CommonActivity.isNullOrEmpty(intent.getExtras().getString("idDevice"))) {
-            String idDevice = "";
-            idDevice = Objects.requireNonNull(intent.getExtras()).getString("idDevice");
-            Log.v("TempMonitoringService", "onStartCommand");
-            startTimer();
-//            MainViewModel viewModel = new MainViewModel();
-//            if (!CommonActivity.isNullOrEmpty(idDevice)) {
-//                viewModel.getAllDevices().observe(Objects.requireNonNull(this), dataSnapshot -> {
-//                    getData(dataSnapshot, devices -> {
-//                        if (devices != null) {
-//                            for (int i = 0; i < devices.size(); i++) {
-//                                Device device = devices.get(i);
-//                                if (idDevice.contains(device.getId())) {
-//                                    if (CommonActivity.isNullOrEmpty(device.getNO()) || CommonActivity.isNullOrEmpty(device.getNG()))
-//                                        return;
-//                                    if (Double.parseDouble(device.getNO()) > Double.parseDouble(device.getNG())) {
-//                                        createNotification(device, i);
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    });
-//                });
-//            }
-            observeDevice(idDevice);
-        }
+        Log.v("TempMonitoringService", "onStartCommand");
+        startTimer();
+        observeDevice();
         return START_STICKY;
     }
 
@@ -164,9 +142,17 @@ public class TempMonitoringService extends LifecycleService implements Serializa
     private void createNotification(Device device, int idNoti) {
         RemoteViews notificationLayout =
                 new RemoteViews(getPackageName(), R.layout.notification_monitoring);
-        String displayName = (device.getName1() != null) ? device.getName1() : device.getId();
-        notificationLayout.setTextViewText(R.id.message, device.getNO1()
-                + " độ trên thiết bị "
+        String displayName = "";
+        String temp = "";
+        if (idNoti == 1) {
+            displayName = "Mâm 1";
+            temp = device.getNO1();
+        } else {
+            displayName = "Mâm 2";
+            temp = device.getNO2();
+        }
+        notificationLayout.setTextViewText(R.id.message, temp
+                + " độ trên "
                 + displayName);
 
         Intent stopWarning = new Intent(this, NotificationIntentService.class);
@@ -183,9 +169,17 @@ public class TempMonitoringService extends LifecycleService implements Serializa
         mBuilder.setOngoing(true);
         mBuilder.setAutoCancel(true);
         mBuilder.setOnlyAlertOnce(true);
-        Intent ii = new Intent(getApplicationContext(), MainActivity.class);
+
+        Intent ii = new Intent(this, MainActivity.class);
+        ii.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addNextIntentWithParentStack(ii);
         ii.putExtra("menuFragment", "DetailDeviceFragment");
-        ii.putExtra("idDevice", device.getId());
+        PendingIntent resultPendingIntent =
+                stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        mBuilder.setContentIntent(resultPendingIntent);
 
         mBuilder.setSmallIcon(R.drawable.ic_warning_red);
         mBuilder.setCustomContentView(notificationLayout);
@@ -280,68 +274,38 @@ public class TempMonitoringService extends LifecycleService implements Serializa
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint("CheckResult")
-    private void observeDevice(String idDevice) {
-        getData().subscribe(devices -> {
+    private void observeDevice() {
+        getData().subscribe(device -> {
             deviceRef.removeEventListener(deviceEventListener);
-            observer(devices, idDevice);
+            observer();
         });
-//        getFBData(item -> {
-//            GenericTypeIndicator<ArrayList<Device>> t = new GenericTypeIndicator<ArrayList<Device>>() {
-//            };
-//            ArrayList<Device> devices = item.getValue(t);
-//            observer(devices, idDevice);
-//        });
     }
 
     @SuppressLint("CheckResult")
     @RequiresApi(api = Build.VERSION_CODES.O)
-    private void observer(ArrayList<Device> devices, String idDevice) {
-        HashSet<String> idSet = new HashSet<>(Arrays.asList(idDevice.split(",")));
-        if (devices != null) {
-            for (Device device : devices) {
-                if (idSet.contains(device.getId())) {
-                    followChild().subscribe(device1 -> {
-                        if (CommonActivity.isNullOrEmpty(device1.getNO1())
-                                || CommonActivity.isNullOrEmpty(device1.getNG1()))
-                            return;
-                        try {
-                            if (Double.parseDouble(device1.getNO1()) > Double.parseDouble(device1.getNG1())) {
-                                createNotification(device1, 1);
-                            }
-                        } catch (NumberFormatException e) {
-                            e.printStackTrace();
-                        }
-                    });
+    private void observer() {
+        followChild().subscribe(device1 -> {
+            if (CommonActivity.isNullOrEmpty(device1.getNO1())
+                    || CommonActivity.isNullOrEmpty(device1.getNG1()))
+                return;
+            try {
+                if (Double.parseDouble(device1.getNO1()) > (1.2 * Double.parseDouble(device1.getNG1()))) {
+                    createNotification(device1, 1);
                 }
+
+                if (Double.parseDouble(device1.getNO2()) > (1.2 * Double.parseDouble(device1.getNG2()))) {
+                    createNotification(device1, 2);
+                }
+
+                @SuppressLint("SimpleDateFormat") String currentTime
+                        = new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
+                device1.setTime(currentTime);
+                mDb.deviceDAO().insertDevice(device1);
+
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
             }
-        }
-//        if (devices != null) {
-//            for (Device device : devices) {
-//                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//                    if (idDevice.contains(device.getId())) {
-//                        int index = devices.indexOf(device);
-//                        deviceRef.child(String.valueOf(index))
-//                                .addValueEventListener(new ValueEventListener() {
-//                                    @Override
-//                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-//                                        Device device1 = dataSnapshot.getValue(Device.class);
-//                                        if (device1 == null) return;
-//                                        if (CommonActivity.isNullOrEmpty(device1.getNO()) || CommonActivity.isNullOrEmpty(device1.getNG()))
-//                                            return;
-//                                        if (Double.parseDouble(device1.getNO()) > Double.parseDouble(device1.getNG())) {
-//                                            createNotification(device1, index);
-//                                        }
-//                                    }
-//
-//                                    @Override
-//                                    public void onCancelled(@NonNull DatabaseError databaseError) {
-//
-//                                    }
-//                                });
-//                    }
-//                }
-//            }
-//        }
+        });
     }
 
     private Observable<Device> followChild() {
@@ -376,15 +340,18 @@ public class TempMonitoringService extends LifecycleService implements Serializa
         });
     }
 
-    private Observable<ArrayList<Device>> getData() {
+    private Observable<Device> getData() {
         return Observable.create(emitter -> {
             deviceEventListener = new ValueEventListener() {
                 @Override
                 public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                    GenericTypeIndicator<ArrayList<Device>> t = new GenericTypeIndicator<ArrayList<Device>>() {
-                    };
-                    ArrayList<Device> devices = dataSnapshot.getValue(t);
-                    emitter.onNext(devices);
+                    Device device = dataSnapshot.getValue(Device.class);
+
+                    if (!CommonActivity.isNullOrEmpty(device)) {
+                        emitter.onNext(device);
+                    } else {
+                        emitter.onError(new Throwable("null"));
+                    }
                 }
 
                 @Override

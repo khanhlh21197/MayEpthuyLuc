@@ -119,12 +119,11 @@ public class LoginFragment extends Fragment {
         binding.setLifecycleOwner(this);
         binding.setLoginViewModel(loginViewModel);
 
-//        initProgress();
-
-//        FirebaseMultiQuery query = new FirebaseMultiQuery(userRef);
-//        final Task<Map<DatabaseReference, DataSnapshot>> allLoad = query.start();
-//        allLoad.addOnCompleteListener(Objects.requireNonNull(getActivity()), new AllOnCompleteListener());
-//        users = loginViewModel.getAllUsersLiveData();
+        if (mAuth.getCurrentUser() != null) {
+            ReplaceFragment.replaceFragment(mActivity,
+                    DetailDeviceFragment.newInstance(),
+                    true);
+        }
 
         binding.btnLogin.setOnClickListener(v -> {
             binding.progressBar.setVisibility(View.VISIBLE);
@@ -142,16 +141,6 @@ public class LoginFragment extends Fragment {
                 ).addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         onLoginSuccess(inputUser);
-//                        for (User user : users) {
-//                            if (user.getEmail().equals(inputUser.getEmail())) {
-//                                loginViewModel.setUserID(user.getUid());
-//                                Log.d("isLoginSuccess", user.getUid());
-//                                this.user = user;
-//                                idDevice = user.getIdDevice();
-//                                onLoginSuccess(inputUser);
-//                                break;
-//                            }
-//                        }
                     } else {
                         CommonActivity.showConfirmValidate(mActivity, "Sai tên email hoặc mật khẩu!");
                         binding.progressBar.setVisibility(View.GONE);
@@ -160,38 +149,6 @@ public class LoginFragment extends Fragment {
             }).doOnSubscribe(disposable -> binding.progressBar.setVisibility(View.VISIBLE))
                     .doOnTerminate(() -> binding.progressBar.setVisibility(View.GONE))
                     .subscribe();
-//            new Handler().postDelayed(() -> {
-//                binding.progressBar.setVisibility(View.GONE);
-//                String message = "";
-//                User inputUser = new User(loginViewModel.Email.getValue(),
-//                        loginViewModel.Password.getValue());
-//                if (CommonActivity.isNullOrEmpty(loginViewModel.Email.getValue())
-//                        || CommonActivity.isNullOrEmpty(loginViewModel.Password.getValue())) {
-//                    message = "Vui lòng điền đủ thông tin đăng nhập!";
-//                    CommonActivity.showConfirmValidate(mActivity, message);
-//                    return;
-//                }
-//                FirebaseAuth.getInstance().signInWithEmailAndPassword(
-//                        inputUser.getEmail(),
-//                        inputUser.getPassword()
-//                ).addOnCompleteListener(task -> {
-//                    if (task.isSuccessful()) {
-//                        for (User user : users) {
-//                            if (user.getEmail().equals(inputUser.getEmail())) {
-//                                loginViewModel.setUserID(user.getUid());
-//                                Log.d("isLoginSuccess", user.getUid());
-//                                this.user = user;
-//                                idDevice = user.getIdDevice();
-//                                CommonActivity.showConfirmValidate(mActivity, "Đăng nhập thành công với " + inputUser.getEmail());
-//                                break;
-//                            }
-//                        }
-//                        onLoginSuccess();
-//                    } else {
-//                        CommonActivity.showConfirmValidate(mActivity, "Sai tên email hoặc mật khẩu!");
-//                    }
-//                });
-//            }, 1000);
         });
 
         binding.signUp.setOnClickListener(v -> {

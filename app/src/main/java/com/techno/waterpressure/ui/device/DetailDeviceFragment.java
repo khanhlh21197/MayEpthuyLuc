@@ -53,6 +53,7 @@ import com.techno.waterpressure.dao.AppDatabase;
 import com.techno.waterpressure.databinding.DetailDeviceFragmentBinding;
 import com.techno.waterpressure.serializer.ObjectSerializer;
 import com.techno.waterpressure.ui.device.model.Device;
+import com.techno.waterpressure.ui.main.TempMonitoringService;
 import com.techno.waterpressure.warning.WarningService;
 
 import java.io.IOException;
@@ -61,6 +62,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
+
+import io.reactivex.Observable;
 
 public class DetailDeviceFragment extends Fragment implements View.OnClickListener, OnChartValueSelectedListener {
     private static final String SHARED_PREFS_HISTORY = "SHARED_PREFS_HISTORY";
@@ -71,6 +74,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     private XAxis xAxis;
     private List<String> timeLabel = new ArrayList<>();
     private ArrayList<Float> temperature = new ArrayList<>();
+    private ArrayList<Float> temperature2 = new ArrayList<>();
 
     private DetailDeviceFragmentBinding mBinding;
     private DetailDeviceViewModel viewModel;
@@ -85,6 +89,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     private Dialog progressDialog;
     private boolean update;
     private Device device;
+    private Intent tempMonitoringService;
 
     public static DetailDeviceFragment newInstance() {
         return new DetailDeviceFragment();
@@ -138,7 +143,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
         });
     }
 
-    private static DataSet dataChart(ArrayList<Float> temperature) {
+    private static DataSet dataChart(ArrayList<Float> temperature, String label, int color) {
         if (CommonActivity.isNullOrEmpty(temperature)) return null;
 
         LineData d = new LineData();
@@ -149,16 +154,17 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
             entries.add(new Entry(index, temperature.get(index)));
         }
 
-        LineDataSet set = new LineDataSet(entries, "Lịch sử đo nhiệt độ");
-        set.setColor(Color.GREEN);
+        LineDataSet set = new LineDataSet(entries, label);
+
+        set.setColor(color);
         set.setLineWidth(2.5f);
-        set.setCircleColor(Color.GREEN);
-        set.setCircleRadius(5f);
-        set.setFillColor(Color.GREEN);
+        set.setCircleColor(color);
+        set.setCircleRadius(2f);
+        set.setFillColor(color);
         set.setMode(LineDataSet.Mode.CUBIC_BEZIER);
         set.setDrawValues(true);
         set.setValueTextSize(10f);
-        set.setValueTextColor(Color.GREEN);
+        set.setValueTextColor(color);
 
         set.setAxisDependency(YAxis.AxisDependency.LEFT);
         d.addDataSet(set);
@@ -169,6 +175,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     private void clearChart() {
         timeLabel.clear();
         temperature.clear();
+        temperature2.clear();
         mChart.invalidate();
         mChart.clear();
     }
@@ -188,6 +195,19 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
         mBinding.listHistory.setAdapter(historyAdapter);
     }
 
+    private void startService() {
+        tempMonitoringService = new Intent(getActivity(), TempMonitoringService.class);
+        if (getActivity() != null) {
+            Objects.requireNonNull(getActivity()).startService(tempMonitoringService);
+        }
+    }
+
+    private void stopService() {
+        if (!CommonActivity.isNullOrEmpty(tempMonitoringService) && getActivity() != null) {
+            Objects.requireNonNull(getActivity()).stopService(tempMonitoringService);
+        }
+    }
+
     @SuppressLint("CheckResult")
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void unit() {
@@ -195,11 +215,12 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
         getDB();
         initSpinner();
         initProgress();
+        startService();
         warningService = new Intent(getActivity(), WarningService.class);
         mBinding.btnWarning.setAnimation(createFlashingAnimation());
-        mBinding.btnThreshold.setOnClickListener(this);
-        mBinding.btnOffset.setOnClickListener(this);
-        mBinding.btnLoopingTime.setOnClickListener(this);
+//        mBinding.btnThreshold.setOnClickListener(this);
+//        mBinding.btnOffset.setOnClickListener(this);
+//        mBinding.btnLoopingTime.setOnClickListener(this);
         mBinding.deleteHistory.setOnClickListener(this);
         mBinding.reset.setOnClickListener(this);
 
@@ -299,9 +320,13 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
                     = new SimpleDateFormat("HH:mm:ss").format(Calendar.getInstance().getTime());
             timeLabel.add(currentTime);
             float temp = 0;
+            float temp2 = 0;
             try {
                 temp = Float.parseFloat(device.getNO1());
+                temp2 = Float.parseFloat(device.getNO2());
+
                 temperature.add(temp);
+                temperature2.add(temp2);
             } catch (NumberFormatException e) {
                 e.printStackTrace();
             }
@@ -317,7 +342,9 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     private void updateChart() {
         CombinedData data = new CombinedData();
         LineData lineDatas = new LineData();
-        lineDatas.addDataSet((ILineDataSet) dataChart(temperature));
+        lineDatas.addDataSet((ILineDataSet) dataChart(temperature, "Mâm nhiệt 1", Color.GREEN));
+
+        lineDatas.addDataSet((ILineDataSet) dataChart(temperature2, "Mâm nhiệt 2", Color.RED));
 
         data.setData(lineDatas);
 
@@ -330,14 +357,25 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     @SuppressLint("CheckResult")
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void compareTemp(Device device1) {
-        if (CommonActivity.isNullOrEmpty(device1.getNO1()) || CommonActivity.isNullOrEmpty(device1.getNG1()))
+        if (CommonActivity.isNullOrEmpty(device1.getNO1())
+                || CommonActivity.isNullOrEmpty(device1.getNG1())
+                || CommonActivity.isNullOrEmpty(device1.getNO2())
+                || CommonActivity.isNullOrEmpty(device1.getNG2()))
             return;
         try {
             history.add(0, device1);
             historyAdapter.notifyItemInserted(0);
             mBinding.listHistory.smoothScrollToPosition(0);
-            if (Double.parseDouble(device1.getNO1()) > Double.parseDouble(device1.getNG1())) {
-                startWarning(device1.getNG1());
+
+            if (Double.parseDouble(device1.getNO1()) > (1.2 * Double.parseDouble(device1.getNG1()))) {
+                startWarning(1);
+                mBinding.btnWarning.setOnClickListener(v -> {
+                    cancelWarning();
+                });
+                Log.d("history", String.valueOf(history.size()));
+                Log.d("highTemp", String.valueOf(highTemp));
+            } else if (Double.parseDouble(device1.getNO2()) > (1.2 * Double.parseDouble(device1.getNG2()))) {
+                startWarning(2);
                 mBinding.btnWarning.setOnClickListener(v -> {
                     cancelWarning();
                 });
@@ -346,16 +384,23 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
             } else {
                 cancelWarning();
                 mBinding.txtHumanTemp.clearAnimation();
+                mBinding.txtFirst.clearAnimation();
             }
+
         } catch (NumberFormatException e) {
             e.printStackTrace();
         }
     }
 
-    private void startWarning(String ng) {
+    private void startWarning(int index) {
         playWarningSound();
         if (!flashingText) {
-            mBinding.txtHumanTemp.setAnimation(createFlashingAnimation());
+            if (index == 1) {
+                mBinding.txtFirst.setAnimation(createFlashingAnimation());
+            }
+            if (index == 2) {
+                mBinding.txtHumanTemp.setAnimation(createFlashingAnimation());
+            }
             flashingText = true;
         }
         mBinding.btnWarning.setVisibility(View.VISIBLE);
@@ -375,6 +420,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     private void cancelWarning() {
         mBinding.btnWarning.setVisibility(View.GONE);
         mBinding.btnWarning.clearAnimation();
+        mBinding.txtFirst.clearAnimation();
         mBinding.txtHumanTemp.clearAnimation();
         flashingText = false;
         if (getActivity() != null) {
@@ -395,6 +441,11 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     public void onResume() {
         super.onResume();
         update = true;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 
     @Override
@@ -449,20 +500,21 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     @RequiresApi(api = Build.VERSION_CODES.O)
     @SuppressLint("CheckResult")
     private void getDB() {
-//        ArrayList<Device> devices = (ArrayList<Device>) mDb.deviceDAO().getAllDevice(idDevice);
-//        history = new ArrayList<>(devices);
-//        for (Device device : devices) {
-//            timeLabel.add(device.getTime());
-//            try {
-//                temperature.add(Float.parseFloat(device.getNO()));
-//            } catch (NumberFormatException e) {
-//                e.printStackTrace();
-//            }
-//        }
-//        Observable.just(devices).subscribe(device -> {
-//            Log.d("getDB", "getDB: " + devices.size());
-//        });
-//        updateChart();
+        ArrayList<Device> devices = (ArrayList<Device>) mDb.deviceDAO().getAllDevice();
+        history = new ArrayList<>(devices);
+        for (Device device : devices) {
+            timeLabel.add(device.getTime());
+            try {
+                temperature.add(Float.parseFloat(device.getNO1()));
+                temperature2.add(Float.parseFloat(device.getNO2()));
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+        }
+        Observable.just(devices).subscribe(device -> {
+            Log.d("getDB", "getDB: " + devices.size());
+        });
+        updateChart();
     }
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -504,15 +556,6 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
 //                            Toast.makeText(getActivity(), "Xóa thành công !", Toast.LENGTH_LONG).show();
 //                        },
 //                        null)).show();
-                break;
-            case R.id.btnThreshold:
-                configureThreshold();
-                break;
-            case R.id.btnOffset:
-                configureOffset();
-                break;
-            case R.id.btnLoopingTime:
-                configureLoopingTime();
                 break;
         }
     }

@@ -15,11 +15,11 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
-import com.techno.waterpressure.common.ReplaceFragment;
-import com.techno.waterpressure.ui.login.LoginFragment;
-import com.techno.waterpressure.ui.main.MainFragment;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.techno.waterpressure.common.ReplaceFragment;
+import com.techno.waterpressure.ui.device.DetailDeviceFragment;
+import com.techno.waterpressure.ui.login.LoginFragment;
 
 import java.util.Objects;
 
@@ -72,30 +72,6 @@ public class MainActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayShowHomeEnabled(true);
     }
 
-//    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
-//            = new BottomNavigationView.OnNavigationItemSelectedListener() {
-//        @Override
-//        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-//            Fragment fragment;
-//            switch (item.getItemId()) {
-//                case R.id.navigation_shop:
-//                    toolBar.setTitle("Shop");
-//                    return true;
-//                case R.id.navigation_gifts:
-//                    toolBar.setTitle("My Gifts");
-//                    return true;
-//                case R.id.navigation_cart:
-//                    toolBar.setTitle("Cart");
-//                    return true;
-//                case R.id.navigation_profile:
-//                    toolBar.setTitle("Profile");
-//                    return true;
-//            }
-//            return false;
-//        }
-//    };
-
-
     @Override
     protected void onResume() {
         super.onResume();
@@ -116,7 +92,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        MainFragment mainFragment = (MainFragment) getSupportFragmentManager().findFragmentByTag(MainFragment.class.getName());
+        DetailDeviceFragment mainFragment = (DetailDeviceFragment) getSupportFragmentManager().findFragmentByTag(DetailDeviceFragment.class.getName());
         if (mainFragment != null && mainFragment.isVisible()) {
             if (doubleBackToExitPressedOnce) {
                 finish();
