@@ -84,9 +84,9 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:padding="@dimen/_4sdp"
-                        android:text="Mâm nhiệt 1"
+                        android:text="Bàn gia nhiệt trên"
                         android:textColor="@color/green"
-                        android:textSize="@dimen/_28ssp" />
+                        android:textSize="@dimen/_20ssp" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -150,9 +150,9 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:padding="@dimen/_4sdp"
-                        android:text="Mâm nhiệt 2"
+                        android:text="Bàn gia nhiệt dưới"
                         android:textColor="@color/red"
-                        android:textSize="@dimen/_28ssp" />
+                        android:textSize="@dimen/_20ssp" />
 
                     <LinearLayout
                         android:layout_width="match_parent"

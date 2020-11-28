@@ -1,5 +1,6 @@
 package com.techno.waterpressure.dao;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.Dao;
 import androidx.room.Delete;
 import androidx.room.Insert;
@@ -20,8 +21,8 @@ public interface DeviceDAO {
     @Insert
     void insertDevice(Device device);
 
-    @Query("DELETE FROM device WHERE id = :id")
-    int deleteHistory(String id);
+    @Query("DELETE FROM device")
+    int deleteHistory();
 
     @Delete
     void deleteDevice(Device device);

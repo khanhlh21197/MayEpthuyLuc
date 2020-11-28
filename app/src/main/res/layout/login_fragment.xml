@@ -17,14 +17,16 @@
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:background="@color/white">
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/lblTitle"
                 android:layout_width="0dp"
                 android:layout_height="@dimen/_250sdp"
-
-                android:src="@drawable/ic_fever"
+                android:layout_margin="@dimen/_16sdp"
+                android:layout_marginBottom="@dimen/_8sdp"
+                android:src="@drawable/ic_hydraulic"
                 android:textAlignment="center"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"

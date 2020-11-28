@@ -543,19 +543,19 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
 //                        }).show();
                 break;
             case R.id.deleteHistory:
-//                Objects.requireNonNull(CommonActivity.createDialog(getActivity(),
-//                        R.string.delete_history,
-//                        R.string.app_name,
-//                        R.string.ok,
-//                        R.string.cancel,
-//                        v1 -> {
-//                            AppDatabase.getDatabase(getActivity()).deviceDAO().deleteHistory(idDevice);
-//                            clearChart();
-//                            history.clear();
-//                            historyAdapter.notifyDataSetChanged();
-//                            Toast.makeText(getActivity(), "Xóa thành công !", Toast.LENGTH_LONG).show();
-//                        },
-//                        null)).show();
+                Objects.requireNonNull(CommonActivity.createDialog(getActivity(),
+                        R.string.delete_history,
+                        R.string.app_name,
+                        R.string.ok,
+                        R.string.cancel,
+                        v1 -> {
+                            AppDatabase.getDatabase(getActivity()).deviceDAO().deleteHistory();
+                            clearChart();
+                            history.clear();
+                            historyAdapter.notifyDataSetChanged();
+                            Toast.makeText(getActivity(), "Xóa thành công !", Toast.LENGTH_LONG).show();
+                        },
+                        null)).show();
                 break;
         }
     }
