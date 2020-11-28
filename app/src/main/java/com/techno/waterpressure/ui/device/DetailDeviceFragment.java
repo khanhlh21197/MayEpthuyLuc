@@ -342,9 +342,9 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     private void updateChart() {
         CombinedData data = new CombinedData();
         LineData lineDatas = new LineData();
-        lineDatas.addDataSet((ILineDataSet) dataChart(temperature, "Mâm nhiệt 1", Color.GREEN));
+        lineDatas.addDataSet((ILineDataSet) dataChart(temperature, "Bàn gia nhiệt 1", Color.GREEN));
 
-        lineDatas.addDataSet((ILineDataSet) dataChart(temperature2, "Mâm nhiệt 2", Color.RED));
+        lineDatas.addDataSet((ILineDataSet) dataChart(temperature2, "Bàn gia nhiệt 2", Color.BLUE));
 
         data.setData(lineDatas);
 
@@ -367,24 +367,33 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
             historyAdapter.notifyItemInserted(0);
             mBinding.listHistory.smoothScrollToPosition(0);
 
-            if (Double.parseDouble(device1.getNO1()) > (1.2 * Double.parseDouble(device1.getNG1()))) {
-                startWarning(1);
+            if ((Double.parseDouble(device1.getNO1()) > (Double.parseDouble(device1.getNG1())))
+                    || Double.parseDouble(device1.getNO2()) > (Double.parseDouble(device1.getNG2()))) {
+                startWarning();
                 mBinding.btnWarning.setOnClickListener(v -> {
                     cancelWarning();
                 });
-                Log.d("history", String.valueOf(history.size()));
-                Log.d("highTemp", String.valueOf(highTemp));
-            } else if (Double.parseDouble(device1.getNO2()) > (1.2 * Double.parseDouble(device1.getNG2()))) {
-                startWarning(2);
-                mBinding.btnWarning.setOnClickListener(v -> {
-                    cancelWarning();
-                });
+            } else {
+                cancelWarning();
+            }
+
+            if (Double.parseDouble(device1.getNO1()) > (Double.parseDouble(device1.getNG1()))) {
+                mBinding.txtFirst.setAnimation(createFlashingAnimation());
+                mBinding.txtFirst.setTextColor(getResources().getColor(R.color.red));
                 Log.d("history", String.valueOf(history.size()));
                 Log.d("highTemp", String.valueOf(highTemp));
             } else {
-                cancelWarning();
-                mBinding.txtHumanTemp.clearAnimation();
                 mBinding.txtFirst.clearAnimation();
+                mBinding.txtFirst.setTextColor(getResources().getColor(R.color.green));
+            }
+            if (Double.parseDouble(device1.getNO2()) > (Double.parseDouble(device1.getNG2()))) {
+                mBinding.txtHumanTemp.setAnimation(createFlashingAnimation());
+                mBinding.txtHumanTemp.setTextColor(getResources().getColor(R.color.red));
+                Log.d("history", String.valueOf(history.size()));
+                Log.d("highTemp", String.valueOf(highTemp));
+            } else {
+                mBinding.txtHumanTemp.clearAnimation();
+                mBinding.txtHumanTemp.setTextColor(getResources().getColor(R.color.blue));
             }
 
         } catch (NumberFormatException e) {
@@ -392,20 +401,10 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
         }
     }
 
-    private void startWarning(int index) {
+    private void startWarning() {
         playWarningSound();
-        if (!flashingText) {
-            if (index == 1) {
-                mBinding.txtFirst.setAnimation(createFlashingAnimation());
-            }
-            if (index == 2) {
-                mBinding.txtHumanTemp.setAnimation(createFlashingAnimation());
-            }
-            flashingText = true;
-        }
         mBinding.btnWarning.setVisibility(View.VISIBLE);
         mBinding.btnWarning.setAnimation(createFlashingAnimation());
-//        showNoti();
     }
 
     private void playWarningSound() {
@@ -422,7 +421,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
         mBinding.btnWarning.clearAnimation();
         mBinding.txtFirst.clearAnimation();
         mBinding.txtHumanTemp.clearAnimation();
-        flashingText = false;
+//        flashingText = false;
         if (getActivity() != null) {
             Objects.requireNonNull(getActivity()).stopService(warningService);
         }
@@ -430,7 +429,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
 
     public static Animation createFlashingAnimation() {
         final Animation flashingAnimation = new AlphaAnimation(1, 0); // Change alpha from fully visible to invisible
-        flashingAnimation.setDuration(500); // duration - half a second
+        flashingAnimation.setDuration(100); // duration - half a second
         flashingAnimation.setInterpolator(new LinearInterpolator()); // do not alter animation rate
         flashingAnimation.setRepeatCount(Animation.INFINITE); // Repeat animation infinitely
         flashingAnimation.setRepeatMode(Animation.REVERSE); // Reverse animation at the end so the button will fade back in

@@ -289,11 +289,11 @@ public class TempMonitoringService extends LifecycleService implements Serializa
                     || CommonActivity.isNullOrEmpty(device1.getNG1()))
                 return;
             try {
-                if (Double.parseDouble(device1.getNO1()) > (1.2 * Double.parseDouble(device1.getNG1()))) {
+                if (Double.parseDouble(device1.getNO1()) > (Double.parseDouble(device1.getNG1()))) {
                     createNotification(device1, 1);
                 }
 
-                if (Double.parseDouble(device1.getNO2()) > (1.2 * Double.parseDouble(device1.getNG2()))) {
+                if (Double.parseDouble(device1.getNO2()) > (Double.parseDouble(device1.getNG2()))) {
                     createNotification(device1, 2);
                 }
 
