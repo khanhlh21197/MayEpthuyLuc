@@ -342,9 +342,9 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     private void updateChart() {
         CombinedData data = new CombinedData();
         LineData lineDatas = new LineData();
-        lineDatas.addDataSet((ILineDataSet) dataChart(temperature, "Bàn gia nhiệt 1", Color.GREEN));
+        lineDatas.addDataSet((ILineDataSet) dataChart(temperature, "Heating table above", Color.GREEN));
 
-        lineDatas.addDataSet((ILineDataSet) dataChart(temperature2, "Bàn gia nhiệt 2", Color.BLUE));
+        lineDatas.addDataSet((ILineDataSet) dataChart(temperature2, "Heating table below", Color.BLUE));
 
         data.setData(lineDatas);
 
@@ -378,7 +378,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
             }
 
             if (Double.parseDouble(device1.getNO1()) > (Double.parseDouble(device1.getNG1()))) {
-                mBinding.txtFirst.setAnimation(createFlashingAnimation());
+                mBinding.txtFirst.startAnimation(createFlashingAnimation());
                 mBinding.txtFirst.setTextColor(getResources().getColor(R.color.red));
                 Log.d("history", String.valueOf(history.size()));
                 Log.d("highTemp", String.valueOf(highTemp));
@@ -387,7 +387,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
                 mBinding.txtFirst.setTextColor(getResources().getColor(R.color.green));
             }
             if (Double.parseDouble(device1.getNO2()) > (Double.parseDouble(device1.getNG2()))) {
-                mBinding.txtHumanTemp.setAnimation(createFlashingAnimation());
+                mBinding.txtHumanTemp.startAnimation(createFlashingAnimation());
                 mBinding.txtHumanTemp.setTextColor(getResources().getColor(R.color.red));
                 Log.d("history", String.valueOf(history.size()));
                 Log.d("highTemp", String.valueOf(highTemp));
@@ -552,7 +552,7 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
                             clearChart();
                             history.clear();
                             historyAdapter.notifyDataSetChanged();
-                            Toast.makeText(getActivity(), "Xóa thành công !", Toast.LENGTH_LONG).show();
+                            Toast.makeText(getActivity(), "Delete success !", Toast.LENGTH_LONG).show();
                         },
                         null)).show();
                 break;

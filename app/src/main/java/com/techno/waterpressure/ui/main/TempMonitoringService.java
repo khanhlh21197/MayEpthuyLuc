@@ -145,14 +145,14 @@ public class TempMonitoringService extends LifecycleService implements Serializa
         String displayName = "";
         String temp = "";
         if (idNoti == 1) {
-            displayName = "Mâm 1";
+            displayName = "Heating table above";
             temp = device.getNO1();
         } else {
-            displayName = "Mâm 2";
+            displayName = "Heating table below";
             temp = device.getNO2();
         }
         notificationLayout.setTextViewText(R.id.message, temp
-                + " độ trên "
+                + " degrees on "
                 + displayName);
 
         Intent stopWarning = new Intent(this, NotificationIntentService.class);
@@ -255,7 +255,7 @@ public class TempMonitoringService extends LifecycleService implements Serializa
         Notification notification = notificationBuilder.setOngoing(true)
                 .setSmallIcon(R.drawable.ic_warning_red)
                 .setContentTitle(getString(R.string.app_name))
-                .setContentText("Đang theo dõi nhiệt độ")
+                .setContentText("Monitoring")
                 .setPriority(NotificationManager.IMPORTANCE_MIN)
                 .setCategory(Notification.CATEGORY_SERVICE)
 //                .setStyle(bigText)

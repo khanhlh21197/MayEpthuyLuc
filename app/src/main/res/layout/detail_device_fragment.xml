@@ -84,7 +84,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:padding="@dimen/_4sdp"
-                        android:text="Bàn gia nhiệt trên"
+                        android:text="Heating table above"
                         android:textColor="@color/green"
                         android:textSize="@dimen/_20ssp" />
 
@@ -151,7 +151,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="center"
                         android:padding="@dimen/_4sdp"
-                        android:text="Bàn gia nhiệt dưới"
+                        android:text="Heating table below"
                         android:textColor="@color/blue"
                         android:textSize="@dimen/_20ssp" />
 
@@ -200,7 +200,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Tắt cảnh báo"
+                android:text="Turn Off Warning"
                 android:textColor="@color/red"
                 android:visibility="gone"
                 app:layout_constraintLeft_toLeftOf="parent"
@@ -221,7 +221,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
-                    android:text="Hiển thị lịch sử: "
+                    android:text="History: "
                     android:textSize="@dimen/_14ssp" />
 
                 <Spinner
@@ -234,7 +234,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="end"
-                    android:text="Xóa lịch sử"
+                    android:text="Delete History"
                     android:textColor="@color/red"
                     android:textSize="@dimen/_14ssp" />
 
