@@ -342,9 +342,9 @@ public class DetailDeviceFragment extends Fragment implements View.OnClickListen
     private void updateChart() {
         CombinedData data = new CombinedData();
         LineData lineDatas = new LineData();
-        lineDatas.addDataSet((ILineDataSet) dataChart(temperature, "Heating table above", Color.GREEN));
+        lineDatas.addDataSet((ILineDataSet) dataChart(temperature, getString(R.string.heating_table_above), Color.GREEN));
 
-        lineDatas.addDataSet((ILineDataSet) dataChart(temperature2, "Heating table below", Color.BLUE));
+        lineDatas.addDataSet((ILineDataSet) dataChart(temperature2, getString(R.string.heating_table_below), Color.BLUE));
 
         data.setData(lineDatas);
 

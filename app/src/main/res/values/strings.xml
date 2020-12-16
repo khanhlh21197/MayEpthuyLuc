@@ -56,9 +56,14 @@
     <string name="threshold">Cài đặt ngưỡng cảnh báo !</string>
     <string name="offset">Cài đặt giá trị Offset !</string>
     <string name="looping_time">Cài đặt thời gian cập nhật !</string>
-    <string name="not_enough">Vui lòng nhập đủ thông tin !</string>
+    <string name="not_enough">Please fill in full sign up information !</string>
     <string name="delete_history">Bạn có muốn xóa lịch sử ?</string>
     <string name="reset_device">Bạn có muốn reset thiết bị ?</string>
+    <string name="heating_table_above">Upper table temperature</string>
+    <string name="heating_table_below">Lower table temperature</string>
+    <string name="turn_off_warning">Turn Off Warning</string>
+    <string name="history">History:</string>
+    <string name="delete_history_1">Delete History</string>
 
     <string-array name="history_display">
         <item>Chart</item>

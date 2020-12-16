@@ -131,7 +131,7 @@ public class LoginFragment extends Fragment {
                     loginViewModel.Password.getValue());
             if (CommonActivity.isNullOrEmpty(loginViewModel.Email.getValue())
                     || CommonActivity.isNullOrEmpty(loginViewModel.Password.getValue())) {
-                CommonActivity.showConfirmValidate(mActivity, "Vui lòng điền đủ thông tin đăng nhập!");
+                CommonActivity.showConfirmValidate(mActivity, "Please fill in full login information!");
                 return;
             }
             Observable.create(emitter -> {
@@ -142,7 +142,7 @@ public class LoginFragment extends Fragment {
                     if (task.isSuccessful()) {
                         onLoginSuccess(inputUser);
                     } else {
-                        CommonActivity.showConfirmValidate(mActivity, "Sai tên email hoặc mật khẩu!");
+                        CommonActivity.showConfirmValidate(mActivity, "Wrong email or password!");
                         binding.progressBar.setVisibility(View.GONE);
                     }
                 });
@@ -201,7 +201,7 @@ public class LoginFragment extends Fragment {
     }
 
     private void onLoginSuccess(User inputUser) {
-        Toast.makeText(mActivity, "Đăng nhập thành công với " + inputUser.getEmail(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(mActivity, "Login success with " + inputUser.getEmail(), Toast.LENGTH_SHORT).show();
         if (binding.saveUser.isChecked()) {
 //            String email = user.getEmail();
 //            String password = user.getPassword();
@@ -236,10 +236,10 @@ public class LoginFragment extends Fragment {
             startActivityForResult(scanIntent, 1);
         });
 
-        alert.setNegativeButton("Hủy", (dialog, which)
+        alert.setNegativeButton(getString(R.string.cancel), (dialog, which)
                 -> Toast.makeText(mActivity, "Cancel clicked", Toast.LENGTH_SHORT).show());
 
-        alert.setPositiveButton("Đồng ý", (dialog, which) -> {
+        alert.setPositiveButton(getString(R.string.ok), (dialog, which) -> {
             idDevice += txtInputDevice.getText().toString() + ",";
             loginViewModel.updateDevice(idDevice, new OnCompleteListener<Void>() {
                 @Override
