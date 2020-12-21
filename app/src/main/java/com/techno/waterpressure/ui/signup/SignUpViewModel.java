@@ -8,15 +8,14 @@ import android.view.View;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.techno.waterpressure.common.CommonActivity;
-import com.techno.waterpressure.ui.login.User;
-import com.techno.waterpressure.utils.Result;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.techno.waterpressure.common.CommonActivity;
+import com.techno.waterpressure.ui.login.User;
+import com.techno.waterpressure.utils.Result;
 
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SignUpViewModel extends ViewModel {
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
@@ -38,21 +37,21 @@ public class SignUpViewModel extends ViewModel {
         User user = new User(email.getValue(), password.getValue());
         String message = "";
         if (CommonActivity.isNullOrEmpty(email)) {
-            result.onFailure("Vui lòng nhập Email hoặc tên tài khoản!");
+            result.onFailure("Please in put email!");
         } else if (!CommonActivity.isNullOrEmpty(password.getValue())
                 && password.getValue().length() < 5) {
-            message = "Mật khẩu phải lớn hơn 5 kí tự!";
+            message = "Password must be greater than 5 characters!";
             result.onFailure(message);
         } else if (CommonActivity.isNullOrEmpty(rePassword.getValue())) {
-            message = "Vui lòng nhập lại mật khẩu!";
+            message = "Please in put re-password!";
             result.onFailure(message);
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
                 && !Objects.equals(rePassword.getValue(), password.getValue())) {
-            message = "Nhập lại password chưa chính xác!";
+            message = "Wrong re-password!";
             result.onFailure(message);
         } else if (!CommonActivity.isNullOrEmpty(email.getValue())
                 && (!Objects.requireNonNull(email.getValue()).matches(String.valueOf(Patterns.EMAIL_ADDRESS)))) {
-            message = "Email chưa đúng định dạng!";
+            message = "Wrong Email!";
             result.onFailure(message);
         } else {
             loading.setValue(View.VISIBLE);
@@ -75,53 +74,11 @@ public class SignUpViewModel extends ViewModel {
                                     Log.d("key", finalChildId);
                                 });
                             }
-                            result.onSuccess(user, "Đăng ký thành công!");
+                            result.onSuccess(user, "Register success!");
                         } else {
-                            result.onFailure("Tài khoản đã tồn tại!");
+                            result.onFailure("Account already exists!");
                         }
                     });
         }
-    }
-
-    private boolean validate(User user) {
-        AtomicBoolean success = new AtomicBoolean(false);
-        String message = "";
-        if (CommonActivity.isNullOrEmpty(email)) {
-            result.onFailure("Vui lòng nhập Email hoặc tên tài khoản!");
-            success.set(false);
-        } else if (!CommonActivity.isNullOrEmpty(password.getValue())
-                && password.getValue().length() < 5) {
-            message = "Mật khẩu phải lớn hơn 5 kí tự!";
-            result.onFailure(message);
-            success.set(false);
-        } else if (CommonActivity.isNullOrEmpty(rePassword.getValue())) {
-            message = "Vui lòng nhập lại mật khẩu!";
-            result.onFailure(message);
-            success.set(false);
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
-                && !Objects.equals(rePassword.getValue(), password.getValue())) {
-            message = "Nhập lại password chưa chính xác!";
-            result.onFailure(message);
-            success.set(false);
-        } else if (!CommonActivity.isNullOrEmpty(email.getValue())
-                && (!Objects.requireNonNull(email.getValue()).matches(String.valueOf(Patterns.EMAIL_ADDRESS)))) {
-            message = "Email chưa đúng định dạng!";
-            result.onFailure(message);
-            success.set(false);
-        } else {
-            FirebaseAuth.getInstance()
-                    .createUserWithEmailAndPassword(Objects.requireNonNull(email.getValue()),
-                            Objects.requireNonNull(password.getValue()))
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            success.set(true);
-                            result.onSuccess(user, "Đăng ký thành công!");
-                        } else {
-                            success.set(false);
-                            result.onFailure("Tài khoản đã tồn tại!");
-                        }
-                    });
-        }
-        return success.get();
     }
 }
